@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final Map<String, dynamic>? loggedInUser;
+  const HomePage({super.key, this.loggedInUser});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -27,7 +28,7 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     "CURL",
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white
                     ),
@@ -37,29 +38,25 @@ class _HomePageState extends State<HomePage> {
               ),
       
               // ================= SEARCH =================
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4,
-                  vertical: 8,
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 36,
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      hintText: "Ask AI or Search Messages",
-                      hintStyle: TextStyle(fontSize: 14, color: Colors.black),
-                      prefixIcon: Icon(Icons.search, size: 22, color: Colors.black),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 4,
-                        horizontal: 8,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(50),
-                        borderSide: BorderSide.none,
-                      ),
+              Container(
+                width: double.infinity,
+                height: 36,
+                padding: EdgeInsets.symmetric(horizontal: 3),
+                margin: EdgeInsets.symmetric(vertical: 10),
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    hintText: "Ask AI or Search Messages",
+                    hintStyle: TextStyle(fontSize: 14, color: Colors.black),
+                    prefixIcon: Icon(Icons.search, size: 22, color: Colors.black),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 8,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50),
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
@@ -96,6 +93,7 @@ class _HomePageState extends State<HomePage> {
                       Text("Item 1", style: TextStyle(color: Colors.white)),
                       Text("Item 1", style: TextStyle(color: Colors.white)),
                       Text("Item 2", style: TextStyle(color: Colors.white)),
+                      Text(widget.loggedInUser?['username'] ?? "", style: TextStyle(color: Colors.white),)
                     ],
                     // ),
                   ),

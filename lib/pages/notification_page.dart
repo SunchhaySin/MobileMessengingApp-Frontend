@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class NotificationPage extends StatefulWidget {
-  const NotificationPage({super.key});
+  final Map<String, dynamic>? loggedInUser;
+  const NotificationPage({super.key, this.loggedInUser});
 
   @override
   State<NotificationPage> createState() => _NotificationPage();

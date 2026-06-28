@@ -3,9 +3,12 @@ import 'package:frontend/pages/home_page.dart';
 import 'package:frontend/pages/menu_page.dart';
 import 'package:frontend/pages/notification_page.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/services/socket.dart';
+import 'package:frontend/services/token.dart';
 
 class Layout extends StatefulWidget {
-  const Layout({super.key});
+  final Map<String, dynamic> loggedInUser;
+  const Layout({super.key, required this.loggedInUser});
 
   @override
   State<Layout> createState() => _Layout();
@@ -13,12 +16,21 @@ class Layout extends StatefulWidget {
 
 class _Layout extends State<Layout> {
   int currentPageIndex = 0;
-  final List<Widget> pages = [
-    Expanded(child: HomePage()),
-    Expanded(child: ContactsPage()),
-    Expanded(child: NotificationPage()),
-    Expanded(child: MenuPage()),
-  ];
+  late final List<Widget> pages;
+
+  @override
+  void initState() {
+    super.initState();
+
+    SocketService().connect(AuthService.token!);
+    
+    pages = [
+      Expanded(child: HomePage(loggedInUser: widget.loggedInUser)),
+      Expanded(child: ContactsPage(loggedInUser: widget.loggedInUser)),
+      Expanded(child: NotificationPage()),
+      Expanded(child: MenuPage()),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

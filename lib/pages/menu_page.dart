@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class MenuPage extends StatefulWidget {
-  const MenuPage({super.key});
+  final Map<String, dynamic>? loggedInUser;
+  const MenuPage({super.key, this.loggedInUser});
 
   @override
   State<MenuPage> createState() => _MenuPage();

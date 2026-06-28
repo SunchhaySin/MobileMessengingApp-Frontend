@@ -1,5 +1,5 @@
-import 'package:frontend/layout.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/prompt.dart';
 
 class Splashscreen extends StatefulWidget {
   const Splashscreen({super.key});
@@ -13,7 +13,7 @@ class _SplashscreenState extends State<Splashscreen> {
   void initState() {
     super.initState();
     Future.delayed(Duration(seconds: 3), () {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Layout()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Prompt()));
     });
   }
 
