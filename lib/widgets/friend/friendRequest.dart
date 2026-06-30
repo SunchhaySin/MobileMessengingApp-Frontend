@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/services/socket.dart';
-// import 'package:frontend/services/token.dart';
+import 'package:frontend/providers/friend_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:frontend/widgets/dialog/friendRequestDialog.dart';
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
+
+import '../../utils/profileName.dart';
+
 
 class FriendrequestTemplate extends StatefulWidget {
   final Color backgroundColor;
   final Color textColor;
   final double marginSize;
   final Map<String, dynamic> fetchResult;
-   final String resultType;
+  final String resultType;
+  final bool selectMode;
+
+  final void Function(String requestId, bool selected) onSelection; // send Request id back to parent
 
   const FriendrequestTemplate({
     super.key,
@@ -19,6 +23,8 @@ class FriendrequestTemplate extends StatefulWidget {
     required this.fetchResult,
     required this.marginSize,
     required this.resultType,
+    required this.selectMode,
+    required this.onSelection,
   });
 
   @override
@@ -26,126 +32,86 @@ class FriendrequestTemplate extends StatefulWidget {
 }
 
 class _FriendrequestTemplate extends State<FriendrequestTemplate> {
+  late final String requestId;
+  bool isSelected = false;
 
-    // Future acceptRequest(String requestId) async {
-    //   try {
-    //     final url = Uri.parse('http://10.0.2.2:3000/friend/accept/$requestId');
-    //     final res = await http.post(
-    //       url,
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         'Authorization': 'Bearer ${AuthService.token}',
-    //       },
-    //     );
-
-    //     final data = jsonDecode(res.body);
-
-    //     if (res.statusCode == 200) {
-    //       if (mounted) {
-    //         ScaffoldMessenger.of(
-    //           context,
-    //         ).showSnackBar(SnackBar(content: Text(data['message'])));
-    //       }
-    //     } else {
-    //       if (mounted) {
-    //         ScaffoldMessenger.of(
-    //           context,
-    //         ).showSnackBar(SnackBar(content: Text(data['message'])));
-    //       }
-    //     }
-    //   } catch (e) {
-    //     print(e);
-    //   }
-    // }
-
-    // Future rejectRequest(String requestId) async {
-    //   try {
-    //     final url = Uri.parse('http://10.0.2.2:3000/friend/reject/$requestId');
-    //     final res = await http.post(
-    //       url,
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         'Authorization': 'Bearer ${AuthService.token}',
-    //       },
-    //     );
-
-    //     final data = jsonDecode(res.body);
-
-    //     if (res.statusCode == 200) {
-    //       if (mounted) {
-    //         ScaffoldMessenger.of(
-    //           context,
-    //         ).showSnackBar(SnackBar(content: Text(data['message'])));
-    //       }
-    //     } else {
-    //       if (mounted) {
-    //         ScaffoldMessenger.of(
-    //           context,
-    //         ).showSnackBar(SnackBar(content: Text(data['message'])));
-    //       }
-    //     }
-    //   } catch (e) {
-    //     print(e);
-    //   }
-    // }
-  void acceptRequest(String requestId) {
-    final socket = SocketService().socket;
-
-    socket?.emit('friend:accept', {'requestId': requestId});
-
-    socket?.once('friend:accept:success', (data) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(data['message'])));
-      }
-    });
-
-    socket?.once('friend:accept:error', (data) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(data['message'])));
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    requestId = widget.fetchResult['id'];
   }
 
-  void rejectRequest(String requestId) {
-    final socket = SocketService().socket;
-
-    socket?.emit('friend:reject', {'requestId': requestId});
-
-    socket?.once('friend:reject:success', (data) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(data['message'])));
-      }
-    });
-
-    socket?.once('friend:reject:error', (data) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(data['message'])));
-      }
-    });
+  void acceptRequest(String requestId) async {
+    final message = await context.read<FriendProvider>().acceptRequest(
+      requestId,
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
   }
+
+  void rejectRequest(String requestId) async {
+    final message = await context.read<FriendProvider>().rejectRequest(
+      requestId,
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  void removeSignleRequest(String requestIds, String requestType) async {
+    final message = await context.read<FriendProvider>().removeRequest([requestIds], requestType);
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
+    final DateTime createdAt = DateTime.parse(widget.fetchResult['createdAt']);
+    final String status = widget.fetchResult['status'];
+
+    Color getStatusColor(String status) {
+      switch (status) {
+        case "Accepted":
+          return Colors.green;
+        case "Rejected":
+          return Colors.red;
+        case "Sent":
+          return Colors.orange;
+        default:
+          return Colors.white;
+      }
+    }
+    final profileName = ProfileName.getInitials(
+      widget.resultType == "sent" 
+        ? widget.fetchResult['requestTo']['username']
+        : widget.fetchResult['requestFrom']['username']);
+    
     return InkWell(
       onTap: () {
-        FriendRequestDialog(
-          requestId: widget.fetchResult['id'],
-          username: widget.resultType == "received"
-              ? widget.fetchResult['requestFrom']['username']
-              : widget.fetchResult['requestTo']['username'],
-          isReceived: widget.resultType == "received",
-          onAccept: acceptRequest,
-          onReject: rejectRequest,  
-          // onRemove: removeRequest,   // add if you have this
-        ).openDialog(context);
+        widget.selectMode 
+          ? setState(() {
+              isSelected = !isSelected;
+              widget.onSelection(requestId, isSelected);
+            })
+          : FriendRequestDialog(
+              requestId: requestId,
+              username: widget.resultType == "received"
+                  ? widget.fetchResult['requestFrom']['username']
+                  : widget.fetchResult['requestTo']['username'],
+              isReceived: widget.resultType == "received",
+              onAccept: acceptRequest,
+              onReject: rejectRequest,
+              onRemove: (id) => removeSignleRequest(id, widget.resultType),
+            ).openDialog(context);
       },
       child: Container(
         width: double.infinity,
@@ -161,6 +127,10 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
           children: [
             Row(
               children: [
+                widget.resultType == "sent"
+                  ? Icon(Icons.call_made, color: Colors.blue)
+                  : Icon(Icons.call_received, color: Colors.blue),
+                SizedBox(width: 8),
                 Container(
                   height: 40,
                   width: 40,
@@ -168,7 +138,7 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
                     borderRadius: BorderRadius.circular(50),
                     color: Colors.blueGrey,
                   ),
-                  child: Text("Profile"),
+                  child: Center(child: Text(profileName, style: TextStyle(fontSize: 18),)),
                 ),
                 SizedBox(width: 8),
                 Column(
@@ -178,12 +148,12 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
                     widget.resultType == "sent"
                         ? Text(
                             widget.fetchResult['requestTo']['username'],
-                            style: TextStyle(
-                              color: widget.textColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
+                              style: TextStyle(
+                                  color: widget.textColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
                         : Text(
                             widget.fetchResult['requestFrom']['username'],
                             style: TextStyle(
@@ -205,26 +175,67 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
                 ),
               ],
             ),
-            SizedBox(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    widget.fetchResult['status'],
-                    style: TextStyle(
-                      color: widget.textColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+            widget.selectMode
+                ? SizedBox(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              status,
+                              style: TextStyle(
+                                color: getStatusColor(status),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "${createdAt.day}/${createdAt.month}/${createdAt.year}",
+                              style: TextStyle(color: widget.textColor),
+                            ),
+                          ],
+                        ),
+                        SizedBox(width: 5),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isSelected = !isSelected;
+                              widget.onSelection(requestId, isSelected);
+                            });
+                          },
+                          child: Icon(
+                            isSelected
+                                ? Icons.check_circle_outline_outlined
+                                : Icons.circle_outlined,
+                            color: isSelected? Colors.green :Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : SizedBox(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          status,
+                          style: TextStyle(
+                            color: getStatusColor(status),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          "${createdAt.day}/${createdAt.month}/${createdAt.year}",
+                          style: TextStyle(color: widget.textColor),
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    widget.fetchResult['createdAt'],
-                    style: TextStyle(color: widget.textColor),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),

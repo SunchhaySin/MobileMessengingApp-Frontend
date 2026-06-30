@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/services/socket.dart';
-// import 'package:frontend/services/token.dart';
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
+import 'package:frontend/providers/friend_provider.dart';
+import 'package:provider/provider.dart';
+import '../../utils/profileName.dart';
 
 class SearchResultTemplate extends StatefulWidget {
   final Color backgroundColor;
@@ -24,54 +23,12 @@ class SearchResultTemplate extends StatefulWidget {
 }
 
 class _SearchResultTemplateState extends State<SearchResultTemplate> {
-  
-  // Future addFriend(String targetUserId) async {
-  //   try {
-  //     final url = Uri.parse('http://10.0.2.2:3000/friend/add');
-  //     final res = await http.post(
-  //       url,
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': 'Bearer ${AuthService.token}',
-  //       },
-  //       body: jsonEncode({'recipientID': targetUserId}),
-  //     );
 
-  //     final data = jsonDecode(res.body);
-
-  //     if (res.statusCode == 201) {
-  //       if (mounted) {
-  //         ScaffoldMessenger.of(
-  //           context,
-  //         ).showSnackBar(SnackBar(content: Text(data['message'])));
-  //       }
-  //     } else {
-  //       if (mounted) {
-  //         ScaffoldMessenger.of(
-  //           context,
-  //         ).showSnackBar(SnackBar(content: Text(data['message'])));
-  //       }
-  //     }
-  //     // print(targetUserId);
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
-  void addFriend(String recipientId) {
-    final socket = SocketService().socket;
-
-    socket?.emit('friend:add', {'recipientId': recipientId});
-
-    socket?.once('friend:add:success', (data) {
-      _showSnackbar(data['message']);
-    });
-
-    socket?.once('friend:add:error', (data) {
-      _showSnackbar(data['message']);
-    });
-  }
-
-  void _showSnackbar(String message) {
+  // Sending Friend request to other users
+  void addFriend(String recipientId) async {
+    final message = await context.read<FriendProvider>().addFriendRequest(
+      recipientId,
+    );
     if (mounted) {
       ScaffoldMessenger.of(
         context,
@@ -81,6 +38,7 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
 
   @override
   Widget build(BuildContext context) {
+    final profileName = ProfileName.getInitials(widget.searchResult['username']);
     return Container(
       width: double.infinity,
       height: 60,
@@ -102,7 +60,7 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
                   borderRadius: BorderRadius.circular(50),
                   color: Colors.blueGrey,
                 ),
-                child: Text("Profile"),
+                child: Center(child: Text(profileName, style: TextStyle(fontSize: 18),)),
               ),
               SizedBox(width: 8),
               Column(

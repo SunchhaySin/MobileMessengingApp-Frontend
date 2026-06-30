@@ -3,8 +3,10 @@ import 'package:frontend/pages/home_page.dart';
 import 'package:frontend/pages/menu_page.dart';
 import 'package:frontend/pages/notification_page.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/providers/friend_provider.dart';
 import 'package:frontend/services/socket.dart';
 import 'package:frontend/services/token.dart';
+import 'package:provider/provider.dart';
 
 class Layout extends StatefulWidget {
   final Map<String, dynamic> loggedInUser;
@@ -22,7 +24,10 @@ class _Layout extends State<Layout> {
   void initState() {
     super.initState();
 
-    SocketService().connect(AuthService.token!);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+    final friendProvider = context.read<FriendProvider>();
+    SocketService().connect(AuthService.token!, friendProvider);
+  });
     
     pages = [
       Expanded(child: HomePage(loggedInUser: widget.loggedInUser)),

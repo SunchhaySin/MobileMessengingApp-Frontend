@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/pages/add_friend.dart';
 import 'package:frontend/pages/friend_requests.dart';
-// import 'package:frontend/providers/friend_provider.dart';
+import 'package:frontend/providers/friend_provider.dart';
 import 'package:frontend/services/token.dart';
 import 'package:frontend/widgets/friend/friendWidget.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-// import 'package:provider/provider.dart';
+import 'package:provider/provider.dart';
 
 class ContactsPage extends StatefulWidget {
   final Map<String, dynamic> loggedInUser;
@@ -18,19 +17,17 @@ class ContactsPage extends StatefulWidget {
 }
 
 class _ContactsPage extends State<ContactsPage> {
-  List<dynamic> friendsList = [];
 
   @override
   void initState() {
     super.initState();
-    fetchFriend();
-    // Future.microtask(() =>fetchFriend());
+    Future.microtask(() => fetchFriend()); 
   }
 
   Future fetchFriend() async {
     try {
-      // final provider = Provider.of<FriendProvider>(context, listen: false);
-      // if (provider.loaded) return;
+      final provider = Provider.of<FriendProvider>(context, listen: false);
+      if (provider.friendLoaded) return;
 
       final url = Uri.parse('http://10.0.2.2:3000/friend/fetch');
       final res = await http.get(
@@ -44,10 +41,7 @@ class _ContactsPage extends State<ContactsPage> {
       print(res.body);
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body)['data'];
-        setState(() {
-          friendsList = data;
-        });
-        // provider.setFriends(data);
+        provider.setFriends(data);  // Call the FriendProvider's setFriends Method to update the friendList in provider's state
       } else {
         if (mounted) {
           ScaffoldMessenger.of(
@@ -57,14 +51,12 @@ class _ContactsPage extends State<ContactsPage> {
       }
     } catch (e) {
       print(e);
-    } finally {
-      print(friendsList);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // final provider = Provider.of<FriendProvider>(context);
+    final friendsList = context.watch<FriendProvider>().friends; // listens for changes in friendlist and updates the UI accordingly
     return SafeArea(
       child: Padding(
         padding: EdgeInsetsGeometry.all(15),

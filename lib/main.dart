@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/providers/friend_provider.dart';
 import 'package:frontend/splash_screen.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => FriendProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

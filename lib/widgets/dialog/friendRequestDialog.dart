@@ -5,8 +5,8 @@ class FriendRequestDialog {
   final String username;
   final bool isReceived;
   final void Function(String) onAccept;
-  final void Function(String)? onReject;
-  final Future Function(String)? onRemove;
+  final void Function(String) onReject;
+  final void Function(String,) onRemove;
 
   const FriendRequestDialog({
     required this.requestId,
@@ -14,7 +14,7 @@ class FriendRequestDialog {
     required this.isReceived,
     required this.onAccept,
     required this.onReject,
-    this.onRemove,
+    required this.onRemove,
   });
 
   void openDialog(BuildContext context) {
@@ -79,7 +79,7 @@ class FriendRequestDialog {
                 // Action buttons
                 if (isReceived) ...[
                   _ActionButton(
-                    label: 'Accept Request',
+                    label: 'Accept',
                     icon: Icons.check_circle_outline,
                     color: Colors.green,
                     onPressed: () {
@@ -89,22 +89,32 @@ class FriendRequestDialog {
                   ),
                   const SizedBox(height: 10),
                   _ActionButton(
-                    label: 'Reject Request',
+                    label: 'Reject',
                     icon: Icons.cancel_outlined,
                     color: Colors.redAccent,
                     onPressed: () {
                       Navigator.of(context).pop();
-                      onReject?.call(requestId);
+                      onReject(requestId);
                     },
                   ),
-                ] else ...[
+                  const SizedBox(height: 10),
                   _ActionButton(
-                    label: 'Remove Request',
+                    label: 'Remove',
                     icon: Icons.delete_outline,
                     color: Colors.redAccent,
                     onPressed: () {
                       Navigator.of(context).pop();
-                      // onRemove?.call(requestId);
+                      onRemove(requestId);
+                    },
+                  ),
+                ] else ...[
+                  _ActionButton(
+                    label: 'Remove',
+                    icon: Icons.delete_outline,
+                    color: Colors.redAccent,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      onRemove(requestId);
                     },
                   ),
                 ],
