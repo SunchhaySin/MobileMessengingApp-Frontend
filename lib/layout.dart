@@ -32,7 +32,7 @@ class _Layout extends State<Layout> {
     pages = [
       Expanded(child: HomePage(loggedInUser: widget.loggedInUser)),
       Expanded(child: ContactsPage(loggedInUser: widget.loggedInUser)),
-      Expanded(child: NotificationPage()),
+      Expanded(child: NotificationPage(loggedInUser: widget.loggedInUser)),
       Expanded(child: MenuPage()),
     ];
   }

@@ -6,14 +6,21 @@ class FriendProvider extends ChangeNotifier {
   List<dynamic> _friends = [];
   List<dynamic> _sentRequests = [];
   List<dynamic> _receivedRequests = [];
+  List<dynamic> _alerts = [];
+
   bool _friendLoaded = false;
   bool _requestsLoaded = false;
+  bool _alertsLoaded = false;
+  bool _listenersRegistered = false;
 
   List<dynamic> get friends => _friends;
   List<dynamic> get sentRequests => _sentRequests;
   List<dynamic> get receivedRequests => _receivedRequests;
+  List<dynamic> get alerts => _alerts;
+
   bool get friendLoaded => _friendLoaded;
   bool get requestsLoaded => _requestsLoaded;
+  bool get alertsLoaded => _alertsLoaded;
 
   get _socket => SocketService().socket; // Connection to socketIO
 
@@ -32,6 +39,12 @@ class FriendProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setAlerts(List<dynamic> data) {
+    _alerts = data;
+    _alertsLoaded = true;
+    notifyListeners();
+  }
+
   // ─── Socket Actions ───
 
   // Handles sending friend request which reflect on sent request in real-time
@@ -42,6 +55,7 @@ class FriendProvider extends ChangeNotifier {
     _socket?.once('friend:add:success', (data) {
       final response = data is List ? data[0] : data;
       _sentRequests.add(response['request']);
+      _alerts.add(response['alert']);
       notifyListeners();
       completer.complete(response['message']?.toString() ?? 'Request Sent');
     });
@@ -64,14 +78,16 @@ class FriendProvider extends ChangeNotifier {
 
     _socket?.once('friend:accept:success', (data) {
       final response = data is List ? data[0] : data;
-      final index = _receivedRequests.indexWhere((r) => r['id'] == requestId);
+      final index = _receivedRequests.indexWhere((r) => r['id'] == requestId);   
       if (index != -1) {
         final existing = Map<String, dynamic>.from(_receivedRequests[index]); 
         _receivedRequests[index] = {
-        ...existing,         // ← keep existing data with nested relations
-        'status': response['updatedStatus']['status'],                // ← just update the status string directly
-      };
-    }
+          ...existing,         // ← keep existing data with nested relations
+          'status': response['updatedStatus']['status'],                // ← just update the status string directly
+        };
+      }
+
+      _alerts.add(response['alert']);
       final friendData = response['friend'];
       _friends.add(friendData['friend']);
       notifyListeners();
@@ -103,11 +119,12 @@ class FriendProvider extends ChangeNotifier {
           ...existing,
           'status': response['updatedStatus']['status']}; // ← update status in place
       }
+
+      _alerts.add(response['alert']);
       notifyListeners();
       completer.complete(response['message']?.toString() ?? 'Request Rejected');
     });
-
-
+    
     _socket?.once('friend:reject:error', (data) {
       final response = data is List ? data[0] : data;
       completer.complete(
@@ -142,44 +159,75 @@ class FriendProvider extends ChangeNotifier {
     return completer.future;
   }
 
-  // ─── Real-time Listeners (other user's side) ───
+ // ─── Real-time Listeners (persistent — call once, e.g. right after socket connects) ───
   void setupFriendListeners() {
-    // Notifies when another user's send you a friend request
+    if (_listenersRegistered) return; // avoid stacking on reconnect/rebuild
+    _listenersRegistered = true;
+
+    // Someone sent ME a friend request
     _socket?.on('friend:new:request', (data) {
-      addReceivedRequest(data['request']);
+      final response = data is List ? data[0] : data;
+      _receivedRequests.add(response['request']);
+      _alerts.add(response['alert']);
+      notifyListeners();
     });
 
-    // Notifies when another user's accepted you friends request
+    // The person I sent a request to accepted it
     _socket?.on('friend:request:accepted', (data) {
-      addFriend(data['friend']);
+      final response = data is List ? data[0] : data;
+      final requestId = response['updatedStatus']['id'];
+
+      final index = _sentRequests.indexWhere((r) => r['id'] == requestId);
+      if (index != -1) {
+        final existing = Map<String, dynamic>.from(_sentRequests[index]);
+        _sentRequests[index] = {
+          ...existing,
+          'status': response['updatedStatus']['status'],
+        };
+      }
+
+      _alerts.add(response['alert']);
+
+      // I'm the requester, so MY new friend is the acceptor → 'user', not 'friend'
+      final friendData = response['friend'];
+      _friends.add(friendData['user']);
+
+      notifyListeners();
     });
 
-    // Notifies when another user's rejects your friend request
+    // The person I sent a request to rejected it
     _socket?.on('friend:request:rejected', (data) {
-      removeFromSentRequests(data['requestId']);
+      final response = data is List ? data[0] : data;
+      final requestId = response['updatedStatus']['id'];
+
+      final index = _sentRequests.indexWhere((r) => r['id'] == requestId);
+      if (index != -1) {
+        final existing = Map<String, dynamic>.from(_sentRequests[index]);
+        _sentRequests[index] = {
+          ...existing,
+          'status': response['updatedStatus']['status'],
+        };
+      }
+
+      _alerts.add(response['alert']);
+      notifyListeners();
     });
   }
 
-  // ─── Local State Helpers ───
-  void addReceivedRequest(dynamic data) {
-    _receivedRequests.add(data);
-    notifyListeners();
-  }
-  
-  void addFriend(dynamic data) {
-    _friends.add(data);
-    notifyListeners();
-  }
-
-  void removeFromSentRequests(String requestId) {
-    _sentRequests.removeWhere((r) => r['id'] == requestId);
-    notifyListeners();
+  // Call this on logout / socket teardown so listeners don't leak into the next session
+  void teardownFriendListeners() {
+    _socket?.off('friend:new:request');
+    _socket?.off('friend:request:accepted');
+    _socket?.off('friend:request:rejected');
+    _listenersRegistered = false;
   }
 
   void clear() {
+    teardownFriendListeners();
     _friends = [];
     _sentRequests = [];
     _receivedRequests = [];
+    _alerts = [];
     _friendLoaded = false;
     _requestsLoaded = false;
     notifyListeners();

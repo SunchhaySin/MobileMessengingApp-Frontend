@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/widgets/dialog/friendDetail.dart';
-
 import '../../utils/profileName.dart';
 
 class Friendwidget extends StatefulWidget {

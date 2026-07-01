@@ -38,7 +38,6 @@ class _ContactsPage extends State<ContactsPage> {
         },
       );
 
-      print(res.body);
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body)['data'];
         provider.setFriends(data);  // Call the FriendProvider's setFriends Method to update the friendList in provider's state
