@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/services/token.dart';
 import 'package:frontend/widgets/friend/searchResult.dart';
 import 'package:http/http.dart' as http;
@@ -18,7 +19,7 @@ class _AddFriendPage extends State<AddFriendPage> {
 
   Future searchUsers(query) async {
     try {
-      final url = Uri.parse('http://10.0.2.2:3000/friend/search?q=$query');
+      final url = Uri.parse('${ApiConfig.baseUrl}/friend/search?q=$query');
       final res = await http.get(
         url,
         headers: {

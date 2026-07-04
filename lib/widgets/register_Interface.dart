@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/layout.dart';
 import 'package:frontend/services/token.dart';
 import 'package:http/http.dart' as http;
@@ -28,7 +29,7 @@ class _RegisterInterface extends State<RegisterInterface> {
       isLoading = true;
     });
     try {
-      final url = Uri.parse('http://10.0.2.2:3000/auth/register');
+      final url = Uri.parse('${ApiConfig.baseUrl}/auth/register');
       final body = jsonEncode({
         "email": _emailController.text,
         "username": _usernameController.text,
@@ -41,7 +42,7 @@ class _RegisterInterface extends State<RegisterInterface> {
         headers: {'Content-Type': 'application/json'},
         body: body,
       );
-
+      
       if (res.statusCode == 201) {
         final data = jsonDecode(res.body);
         AuthService.token = data['token'];

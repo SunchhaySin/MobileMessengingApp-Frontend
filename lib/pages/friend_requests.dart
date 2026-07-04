@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/providers/friend_provider.dart';
 import 'package:frontend/services/token.dart';
 import 'package:frontend/widgets/friend/friendRequest.dart';
@@ -32,7 +33,7 @@ class _FriendRequestPage extends State<FriendRequestPage> {
       final provider = Provider.of<FriendProvider>(context, listen: false);
       if (provider.requestsLoaded) return;
 
-      final url = Uri.parse('http://10.0.2.2:3000/friend/fetch/requests');
+      final url = Uri.parse('${ApiConfig.baseUrl}/friend/fetch/requests');
       final res = await http.get(
         url,
         headers: {

@@ -1,21 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import '../../utils/profileName.dart';
+
+enum AlertType {
+  sendRequest("Send_Request"),
+  acceptRequest("Accept_Request"),
+  rejectRequest("Reject_Request");
+
+  const AlertType(this.value);
+
+  final String value;
+}
 
 class Alertwidget extends StatefulWidget {
   final Map<String, dynamic> loggedInUser;
   final Color backgroundColor;
   final Color textColor;
   final double marginSize;
-  final Map<String, dynamic> alertData;
+  final String alertMessage;
+  final String profileInitials;
+  final String timeStamp;
 
   const Alertwidget({
     super.key,
     required this.loggedInUser,
     required this.backgroundColor,
     required this.textColor,
-    required this.alertData,
+    required this.alertMessage,
+    required this.profileInitials,
     required this.marginSize,
+    required this.timeStamp
   });
 
   @override
@@ -23,36 +36,12 @@ class Alertwidget extends StatefulWidget {
 }
 
 class _Alertwidget extends State<Alertwidget> {
-  String composeAlertMessage(Map<String, dynamic> alertData) {
-    final sender = alertData['sender'];
-    final receiver = alertData['receiver'];
 
-    // final List<String> alertContent = alertData['message'].split("");
-
-    if (widget.loggedInUser['userID'] == sender['id']) {
-      return "You sent a friend request to ${receiver['username']}";
-    } else if (widget.loggedInUser['userID'] == receiver['id']) {
-      return "${sender['username']} sent you a friend request";
-    } else {
-      return "Unknown alert";
-    }
-  }
-
-  String getProfileInitials(Map<String, dynamic> alertData) {
-    final sender = alertData['sender'];
-    final receiver = alertData['receiver'];
-
-    if (widget.loggedInUser['userID'] == sender['id']) {
-      return ProfileName.getInitials(receiver['username']);
-    } else if (widget.loggedInUser['userID'] == receiver['id']) {
-      return ProfileName.getInitials(sender['username']);
-    } else {
-      return "??";
-    }
-  }
-
+  
   @override
   Widget build(BuildContext context) {
+    final usernamePart = widget.alertMessage.split(",")[0];
+    final messagePart = widget.alertMessage.split(",")[1];
     return InkWell(
       // onTap: () => FriendDetailDialog(friendProfile: widget.alertData).openDialog(context),
       child: Container(
@@ -78,21 +67,34 @@ class _Alertwidget extends State<Alertwidget> {
                   ),
                   child: Center(
                     child: Text(
-                      getProfileInitials(widget.alertData),
+                      widget.profileInitials,
                       style: TextStyle(fontSize: 18),
                     ),
                   ),
                 ),
                 SizedBox(width: 8),
-                Text(
-                  composeAlertMessage(widget.alertData),
-                  style: TextStyle(color: widget.textColor),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left:2),
+                      child: Text(
+                        usernamePart,
+                        style: TextStyle(color: widget.textColor, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Text(
+                      messagePart,
+                      style: TextStyle(color: widget.textColor, fontSize: 12),
+                    ),
+                  ],
                 ),
               ],
             ),
             Text(
-              timeago.format(DateTime.parse(widget.alertData['createdAt'])),
-              style: TextStyle(color: widget.textColor),
+              timeago.format(DateTime.parse(widget.timeStamp)),
+              style: TextStyle(color: widget.textColor, fontSize: 12),
             ),
           ],
         ),

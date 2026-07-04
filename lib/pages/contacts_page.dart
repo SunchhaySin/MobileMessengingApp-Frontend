@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/pages/add_friend.dart';
 import 'package:frontend/pages/friend_requests.dart';
 import 'package:frontend/providers/friend_provider.dart';
@@ -29,7 +30,7 @@ class _ContactsPage extends State<ContactsPage> {
       final provider = Provider.of<FriendProvider>(context, listen: false);
       if (provider.friendLoaded) return;
 
-      final url = Uri.parse('http://10.0.2.2:3000/friend/fetch');
+      final url = Uri.parse('${ApiConfig.baseUrl}/friend/fetch');
       final res = await http.get(
         url,
         headers: {

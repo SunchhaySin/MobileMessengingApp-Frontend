@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/prompt.dart';
+import 'package:frontend/services/socket.dart';
+import 'package:frontend/services/token.dart';
 
 class MenuPage extends StatefulWidget {
-  final Map<String, dynamic>? loggedInUser;
-  const MenuPage({super.key, this.loggedInUser});
+  final Map<String, dynamic> loggedInUser;
+  const MenuPage({super.key, required this.loggedInUser});
 
   @override
   State<MenuPage> createState() => _MenuPage();
 }
 
 class _MenuPage extends State<MenuPage> {
-  @override 
+  void logOut() {
+    SocketService().disconnect();
+    AuthService.token = null;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
@@ -18,9 +26,58 @@ class _MenuPage extends State<MenuPage> {
           width: double.infinity,
           child: Column(
             children: [
-              Center(child: Text("Menu Page", style: TextStyle(color: Colors.white)))
-            ],),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Menu",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Icon(Icons.menu, color: Colors.white),
+                ],
+              ),
+              SizedBox(height: 20),
+              Expanded(
+                child: Column(
+                  children: [
+                    // Log out button
+                    GestureDetector(
+                      onTap: () {
+                        logOut();
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => Prompt()),
+                        );
+                      },
+                      child: Container(
+                        width: 350,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Log out",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-        ));
+      ),
+    );
   }
 }

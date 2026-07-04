@@ -1,3 +1,4 @@
+import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/providers/friend_provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -9,7 +10,7 @@ class SocketService {
 
   void connect(String token, FriendProvider friendProvider) {
     socket = IO.io(
-      'http://10.0.2.2:3000', // Android emulator
+      ApiConfig.baseUrl,
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()
@@ -37,5 +38,7 @@ class SocketService {
   
   void disconnect() {
     socket?.disconnect();
+    socket?.dispose();
+    socket = null;
   }
 }

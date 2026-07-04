@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/apiConfig.dart';
+import 'package:frontend/services/token.dart';
 import 'package:frontend/widgets/dialog/friendDetail.dart';
 import '../../utils/profileName.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class Friendwidget extends StatefulWidget {
   final Color backgroundColor;
@@ -14,7 +18,6 @@ class Friendwidget extends StatefulWidget {
     required this.textColor,
     required this.data,
     required this.marginSize,
-
   });
 
   @override
@@ -22,11 +25,33 @@ class Friendwidget extends StatefulWidget {
 }
 
 class _Friendwidget extends State<Friendwidget> {
+  Future<void> openChat(String userId) async {
+    try {
+      final res = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/conversation/open'),
+        body: jsonEncode({"friendId": userId}),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${AuthService.token}',
+        },
+      );
+
+      final data = jsonDecode(res.body)['data'];
+      print(data);
+
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileName = ProfileName.getInitials(widget.data['username']);
     return InkWell(
-      onTap: () => FriendDetailDialog(friendProfile: widget.data).openDialog(context),
+      onTap: () => FriendDetailDialog(
+        friendProfile: widget.data,
+        onChat: openChat,
+      ).openDialog(context),
       child: Container(
         width: double.infinity,
         height: 60,
@@ -48,7 +73,9 @@ class _Friendwidget extends State<Friendwidget> {
                     borderRadius: BorderRadius.circular(50),
                     color: Colors.blueGrey,
                   ),
-                  child: Center(child: Text(profileName, style: TextStyle(fontSize: 18),)),
+                  child: Center(
+                    child: Text(profileName, style: TextStyle(fontSize: 18)),
+                  ),
                 ),
                 SizedBox(width: 8),
                 Column(
@@ -86,7 +113,7 @@ class _Friendwidget extends State<Friendwidget> {
                     style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12
+                      fontSize: 12,
                     ),
                   ),
                 ),

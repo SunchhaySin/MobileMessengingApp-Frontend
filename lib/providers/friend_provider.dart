@@ -55,7 +55,7 @@ class FriendProvider extends ChangeNotifier {
     _socket?.once('friend:add:success', (data) {
       final response = data is List ? data[0] : data;
       _sentRequests.add(response['request']);
-      _alerts.add(response['alert']);
+      // _alerts.add(response['alert']);
       notifyListeners();
       completer.complete(response['message']?.toString() ?? 'Request Sent');
     });
@@ -87,7 +87,7 @@ class FriendProvider extends ChangeNotifier {
         };
       }
 
-      _alerts.add(response['alert']);
+      // _alerts.add(response['alert']);
       final friendData = response['friend'];
       _friends.add(friendData['friend']);
       notifyListeners();
@@ -120,7 +120,7 @@ class FriendProvider extends ChangeNotifier {
           'status': response['updatedStatus']['status']}; // ← update status in place
       }
 
-      _alerts.add(response['alert']);
+      // _alerts.add(response['alert']);
       notifyListeners();
       completer.complete(response['message']?.toString() ?? 'Request Rejected');
     });

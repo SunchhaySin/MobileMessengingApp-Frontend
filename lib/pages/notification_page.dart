@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/providers/friend_provider.dart';
 import 'package:frontend/services/token.dart';
+import 'package:frontend/utils/profileName.dart';
 import 'package:frontend/widgets/alert/alertWidget.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -24,33 +26,64 @@ class _NotificationPage extends State<NotificationPage> {
 
   Future<void> fetchAlerts() async {
     final provider = Provider.of<FriendProvider>(context, listen: false);
-      if (provider.alertsLoaded) return;
+    if (provider.alertsLoaded) return;
 
-      final res = await http.get(
-        Uri.parse('http://10.0.2.2:3000/alert/fetch'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${AuthService.token}',
-        },
-      );
-      print(res.body);
-            if (res.statusCode == 200) {
-        final data = jsonDecode(res.body)['data'];
+    final res = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/alert/fetch'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${AuthService.token}',
+      },
+    );
+    print(res.body);
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body)['data'];
 
-        // Call the FriendProvider's setAlerts Method to fetch alerts and update the alerts in provider's state
-        provider.setAlerts(data);  
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Data not found")));
-        }
+      // Call the FriendProvider's setAlerts Method to fetch alerts and update the alerts in provider's state
+      provider.setAlerts(data);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Data not found")));
       }
-  
+    }
   }
+    String composeAlertMessage(Map<String, dynamic> alertData) {
+    final senderData = alertData['sender'];
+    final receiverData = alertData['receiver'];
+    final AlertType alertType = AlertType.values.firstWhere(
+      (e) => e.value == alertData['type'],
+    );
+
+    bool isReceiver = widget.loggedInUser['userID'] == receiverData['id'];
+    if (isReceiver) {
+      switch (alertType) {
+        case AlertType.sendRequest:
+          return "${senderData['username']}, sent you a friend request";
+        case AlertType.acceptRequest:
+          return "${senderData['username']}, accepted your friend request";
+        case AlertType.rejectRequest:
+          return "${senderData['username']}, rejected your friend request";
+      }
+    } else {
+      return "";
+    }
+  }
+
+  String getProfileInitials(Map<String, dynamic> alertData) {
+    final senderUsername = alertData['sender']['username'];
+    return ProfileName.getInitials(senderUsername);
+  }
+  
 
   @override 
   Widget build(BuildContext context) {
     final alertsList = context.watch<FriendProvider>().alerts;
+    final filteredAlerts = alertsList
+    .where((alert) => composeAlertMessage(alert) != "")
+    .toList();
+
     return SafeArea(
       child: Padding(
         padding: EdgeInsetsGeometry.all(15),
@@ -74,16 +107,19 @@ class _NotificationPage extends State<NotificationPage> {
               ),
               SizedBox(height: 20),
               Expanded(
-                child: alertsList.isNotEmpty
+                child: filteredAlerts.isNotEmpty
                     ? ListView.builder(
-                        itemCount: alertsList.length,
+                        itemCount: filteredAlerts.length,
                         itemBuilder: (context, index) {
-                          return Alertwidget(
+                          return 
+                          Alertwidget(
                             loggedInUser: widget.loggedInUser,
                             backgroundColor: Colors.black,
                             textColor: Colors.white,
                             marginSize: 3.0,
-                            alertData: alertsList[index],
+                            alertMessage: composeAlertMessage(filteredAlerts[index]),
+                            profileInitials: getProfileInitials(filteredAlerts[index]),
+                            timeStamp: filteredAlerts[index]['createdAt'],
                           );
                         },
                       )

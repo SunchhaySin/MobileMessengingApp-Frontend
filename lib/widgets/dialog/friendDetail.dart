@@ -3,8 +3,9 @@ import 'package:frontend/utils/profileName.dart';
 
 class FriendDetailDialog {
   final Map<String, dynamic> friendProfile;
+  final void Function(String) onChat;
 
-  const FriendDetailDialog({required this.friendProfile});
+  const FriendDetailDialog({required this.friendProfile, required this.onChat});
 
   String get profileName => ProfileName.getInitials(friendProfile['username']);
   DateTime get createdAt => DateTime.parse(friendProfile['createdAt']);
@@ -76,6 +77,7 @@ class FriendDetailDialog {
                         color: Colors.green,
                         onPressed: () {
                           Navigator.of(context).pop();
+                          onChat(friendProfile['id']);
                         },
                       ),
                     ),

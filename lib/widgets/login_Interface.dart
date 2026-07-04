@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/layout.dart';
 import 'package:frontend/services/token.dart';
 import 'package:http/http.dart' as http;
@@ -32,7 +33,7 @@ class _LoginInterface extends State<LoginInterface> {
       isLoading = true;
     });
     try {
-      final url = Uri.parse('http://10.0.2.2:3000/auth/login');
+      final url = Uri.parse('${ApiConfig.baseUrl}/auth/login');
 
       final body = jsonEncode({
         "identifier": _identifierController.text,
