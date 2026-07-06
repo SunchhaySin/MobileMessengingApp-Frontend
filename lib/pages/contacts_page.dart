@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/pages/add_friend.dart';
 import 'package:frontend/pages/friend_requests.dart';
 import 'package:frontend/providers/friend_provider.dart';
-import 'package:frontend/services/token.dart';
 import 'package:frontend/widgets/friend/friendWidget.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:provider/provider.dart';
 
 class ContactsPage extends StatefulWidget {
@@ -18,42 +14,6 @@ class ContactsPage extends StatefulWidget {
 }
 
 class _ContactsPage extends State<ContactsPage> {
-
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() => fetchFriend()); 
-  }
-
-  Future fetchFriend() async {
-    try {
-      final provider = Provider.of<FriendProvider>(context, listen: false);
-      if (provider.friendLoaded) return;
-
-      final url = Uri.parse('${ApiConfig.baseUrl}/friend/fetch');
-      final res = await http.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${AuthService.token}',
-        },
-      );
-
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body)['data'];
-        provider.setFriends(data);  // Call the FriendProvider's setFriends Method to update the friendList in provider's state
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Data not found")));
-        }
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final friendsList = context.watch<FriendProvider>().friends; // listens for changes in friendlist and updates the UI accordingly
@@ -163,6 +123,7 @@ class _ContactsPage extends State<ContactsPage> {
                             textColor: Colors.white,
                             marginSize: 3.0,
                             data: friendsList[index],
+                            loggedInUser: widget.loggedInUser,
                           );
                         },
                       )

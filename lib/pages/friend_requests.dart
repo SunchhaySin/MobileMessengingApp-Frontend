@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/providers/friend_provider.dart';
-import 'package:frontend/services/token.dart';
 import 'package:frontend/widgets/friend/friendRequest.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:provider/provider.dart';
 
 class FriendRequestPage extends StatefulWidget {
@@ -22,41 +18,6 @@ class _FriendRequestPage extends State<FriendRequestPage> {
   final List<String> selectedSentRequests = [];
   final List<String> selectedReceivedRequests = [];
 
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() => fetchRequests());
-  }
-
-  Future fetchRequests() async {
-    try {
-      final provider = Provider.of<FriendProvider>(context, listen: false);
-      if (provider.requestsLoaded) return;
-
-      final url = Uri.parse('${ApiConfig.baseUrl}/friend/fetch/requests');
-      final res = await http.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${AuthService.token}',
-          },
-      );
-      
-      print(res.body);
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        provider.setRequests(data['sentRequests'], data['receivedRequests']);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text("Data not found")));
-        }
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
 
   Future<void> removeMultipleRequests(List<String> requestIds, String requestType) async {
     final message = await context.read<FriendProvider>().removeRequest(requestIds, requestType);
@@ -72,6 +33,7 @@ class _FriendRequestPage extends State<FriendRequestPage> {
     final provider = context.watch<FriendProvider>();
     final sentRequests = provider.sentRequests;
     final receivedRequests = provider.receivedRequests;
+
     return Scaffold(
       body: Container(
         width: double.infinity,

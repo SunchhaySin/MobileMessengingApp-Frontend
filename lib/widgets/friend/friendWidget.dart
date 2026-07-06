@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/config/apiConfig.dart';
+import 'package:frontend/pages/conversation.dart';
 import 'package:frontend/services/token.dart';
 import 'package:frontend/widgets/dialog/friendDetail.dart';
 import '../../utils/profileName.dart';
@@ -11,6 +12,7 @@ class Friendwidget extends StatefulWidget {
   final Color textColor;
   final double marginSize;
   final Map<String, dynamic> data;
+  final Map<String, dynamic> loggedInUser;
 
   const Friendwidget({
     super.key,
@@ -18,6 +20,7 @@ class Friendwidget extends StatefulWidget {
     required this.textColor,
     required this.data,
     required this.marginSize,
+    required this.loggedInUser,
   });
 
   @override
@@ -38,7 +41,11 @@ class _Friendwidget extends State<Friendwidget> {
 
       final data = jsonDecode(res.body)['data'];
       print(data);
-
+      Navigator.push(context, MaterialPageRoute(builder: (context) => ConversationPage(
+        conversationData: data,
+        loggedInUser: widget.loggedInUser,
+        friendName: widget.data['username'],
+      )));
     } catch (e) {
       print(e);
     }

@@ -1,0 +1,150 @@
+import 'package:flutter/material.dart';
+import 'package:frontend/services/socket.dart';
+
+class ConversationProvider extends ChangeNotifier {
+  // Cache: conversationId -> list of messages
+  final Map<String, List<dynamic>> _messagesByConversation = {};
+
+  // Track which conversations have been loaded from REST at least once
+  final Set<String> _loadedConversations = {};
+
+  // Store all conversation is a List
+  List<dynamic> _conversations = [];
+  bool _conversationsLoaded = false;
+
+  List<dynamic> get conversations => _conversations;
+  bool get conversationsLoaded => _conversationsLoaded;
+
+  String? _activeConversationId;
+  String? _errorMessage;
+  bool _listenersRegistered = false;
+
+  String? get activeConversationId => _activeConversationId;
+  String? get errorMessage => _errorMessage;
+
+  // Get messages for a specific conversation (empty list if not loaded yet)
+  List<dynamic> messagesFor(String conversationId) =>
+      _messagesByConversation[conversationId] ?? [];
+
+  bool isLoaded(String conversationId) =>
+      _loadedConversations.contains(conversationId);
+
+  get _socket => SocketService().socket;
+
+  void setupMessageListeners() {
+    if (_listenersRegistered) return; 
+    _listenersRegistered = true;
+
+    _socket?.on('new:message', _onNewMessage);
+    _socket?.on('error', _onSocketError);
+  }
+
+  void teardownMessageListeners() {
+    _socket?.off('new:message', _onNewMessage);
+    _socket?.off('error', _onSocketError);
+    _listenersRegistered = false;
+  }
+
+  // Called once after fetching from REST API for a given conversation
+  void setMessages(String conversationId, List<dynamic> data) {
+    _messagesByConversation[conversationId] = data;
+    _loadedConversations.add(conversationId);
+    notifyListeners();
+  }
+
+  void setConversations(List<dynamic> coversations) {
+    _conversations = coversations;
+    _conversationsLoaded = true;
+    notifyListeners();
+  }
+
+  void joinConversationRoom(String conversationId) {
+    if (_activeConversationId != null &&
+        _activeConversationId != conversationId) {
+      leaveConversationRoom(_activeConversationId!);
+    }
+
+    _activeConversationId = conversationId;
+    _errorMessage = null;
+    notifyListeners();
+
+    _socket?.emit('join_conversation', conversationId);
+  }
+
+  void _onNewMessage(dynamic data) {
+    final conversationId = data['conversationId'];
+    if (conversationId == null) return;
+
+    // Ensure a list exists even if this conversation was never REST-loaded
+    _messagesByConversation.putIfAbsent(conversationId, () => []);
+    _messagesByConversation[conversationId]!.add(data);
+
+    _updateConversationSummary(data);
+
+    notifyListeners();
+  }
+
+  void sendMessage(String content) {
+    if (content.trim().isEmpty || _activeConversationId == null) return;
+
+    _socket?.emit('send:message', {
+      'conversationId': _activeConversationId,
+      'content': content.trim(),
+    });
+  }
+
+  void _updateConversationSummary(dynamic message) {
+    final conversationId = message['conversationId'];
+
+    final index = _conversations.indexWhere((c) => c['id'] == conversationId);
+
+    if (index == -1) return;
+
+    _conversations[index]['messages'] = [message];
+
+    // Optional: move the conversation to the top
+    final conversation = _conversations.removeAt(index);
+    _conversations.insert(0, conversation);
+  }
+
+  void addConversation(Map<String, dynamic> conversation) {
+    final exists = _conversations.any((c) => c['id'] == conversation['id']);
+
+    if (!exists) {
+      _conversations.insert(0, conversation);
+      notifyListeners();
+    }
+  }
+
+  void _onSocketError(dynamic data) {
+    _errorMessage = data['message'] ?? 'Something went wrong';
+    notifyListeners();
+  }
+
+  void leaveConversationRoom(String conversationId) {
+    _socket?.emit('leave_conversation', conversationId);
+    if (_activeConversationId == conversationId) {
+      _activeConversationId = null;
+    }
+  }
+
+  void clear() {
+    teardownMessageListeners();
+    _conversations.clear();
+    _conversationsLoaded = false;
+
+    _messagesByConversation.clear();
+    _loadedConversations.clear();
+
+    _activeConversationId = null;
+    _errorMessage = null;
+    
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    teardownMessageListeners();
+    super.dispose();
+  }
+}

@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/providers/friend_provider.dart';
-import 'package:frontend/services/token.dart';
 import 'package:frontend/utils/profileName.dart';
 import 'package:frontend/widgets/alert/alertWidget.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class NotificationPage extends StatefulWidget {
   final Map<String, dynamic> loggedInUser;
@@ -18,37 +14,6 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPage extends State<NotificationPage> {
 
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() => fetchAlerts()); 
-  }
-
-  Future<void> fetchAlerts() async {
-    final provider = Provider.of<FriendProvider>(context, listen: false);
-    if (provider.alertsLoaded) return;
-
-    final res = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/alert/fetch'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${AuthService.token}',
-      },
-    );
-    print(res.body);
-    if (res.statusCode == 200) {
-      final data = jsonDecode(res.body)['data'];
-
-      // Call the FriendProvider's setAlerts Method to fetch alerts and update the alerts in provider's state
-      provider.setAlerts(data);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Data not found")));
-      }
-    }
-  }
     String composeAlertMessage(Map<String, dynamic> alertData) {
     final senderData = alertData['sender'];
     final receiverData = alertData['receiver'];

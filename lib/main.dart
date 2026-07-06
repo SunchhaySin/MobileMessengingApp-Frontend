@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/providers/conversation_provider.dart';
 import 'package:frontend/providers/friend_provider.dart';
 import 'package:frontend/splash_screen.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => FriendProvider()),
+        ChangeNotifierProvider(create: (_) => ConversationProvider())
       ],
       child: MyApp(),
     ),

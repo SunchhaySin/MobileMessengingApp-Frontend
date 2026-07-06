@@ -1,11 +1,16 @@
+import 'dart:convert';
+
+import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/pages/contacts_page.dart';
 import 'package:frontend/pages/home_page.dart';
 import 'package:frontend/pages/menu_page.dart';
 import 'package:frontend/pages/notification_page.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/providers/conversation_provider.dart';
 import 'package:frontend/providers/friend_provider.dart';
 import 'package:frontend/services/socket.dart';
 import 'package:frontend/services/token.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 class Layout extends StatefulWidget {
@@ -26,7 +31,14 @@ class _Layout extends State<Layout> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
     final friendProvider = context.read<FriendProvider>();
-    SocketService().connect(AuthService.token!, friendProvider);
+    final conversationProvider = context.read<ConversationProvider>();
+    SocketService().connect(AuthService.token!);
+    friendProvider.setupFriendListeners();
+    conversationProvider.setupMessageListeners();
+
+    Future.microtask(() => fetchAlerts()); // Fetches Alerts when the provider is mounted
+    Future.microtask(() => fetchRequests()); // Fetches requests when the provider is mounted
+    Future.microtask(() => fetchFriend());
   });
     
     pages = [
@@ -37,20 +49,97 @@ class _Layout extends State<Layout> {
     ];
   }
 
+    Future<void> fetchAlerts() async {
+    final provider = Provider.of<FriendProvider>(context, listen: false);
+    if (provider.alertsLoaded) return;
+
+    final res = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/alert/fetch'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${AuthService.token}',
+      },
+    );
+    print(res.body);
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body)['data'];
+
+      // Call the FriendProvider's setAlerts Method to fetch alerts and update the alerts in provider's state
+      provider.setAlerts(data);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Data not found")));
+      }
+    }
+  }
+
+  Future fetchRequests() async {
+    try {
+      final provider = Provider.of<FriendProvider>(context, listen: false);
+      if (provider.requestsLoaded) return;
+
+      final url = Uri.parse('${ApiConfig.baseUrl}/friend/fetch/requests');
+      final res = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${AuthService.token}',
+          },
+      );
+      
+      print(res.body);
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        provider.setRequests(data['sentRequests'], data['receivedRequests']);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Data not found")));
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+    Future fetchFriend() async {
+    try {
+      final provider = Provider.of<FriendProvider>(context, listen: false);
+      if (provider.friendLoaded) return;
+
+      final url = Uri.parse('${ApiConfig.baseUrl}/friend/fetch');
+      final res = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${AuthService.token}',
+        },
+      );
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body)['data'];
+        provider.setFriends(data); // Call the FriendProvider's setFriends Method to update the friendList in provider's state
+
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Data not found")));
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        // width: double.infinity,
-        // height: double.infinity,
         color: Colors.black87,
-        // decoration: BoxDecoration(
-        //   gradient: LinearGradient(
-        //     colors: [Colors.lightBlue.shade200, Colors.lightBlueAccent],
-        //     begin: Alignment.topCenter,
-        //     end: Alignment.bottomCenter,
-        //   ),
-        // ),
         child: Column(
           children: [
             pages[currentPageIndex],
