@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 
 class FriendRequestPage extends StatefulWidget {
   final Map<String, dynamic> loggedInUser;
-  const FriendRequestPage({super.key, required this.loggedInUser});
+  final bool isDarkMode;
+  const FriendRequestPage({super.key, required this.loggedInUser, required this.isDarkMode});
 
   @override
   State<FriendRequestPage> createState() => _FriendRequestPage();
@@ -38,7 +39,7 @@ class _FriendRequestPage extends State<FriendRequestPage> {
       body: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: 50, horizontal: 10),
-        color: Colors.black87,
+        color: widget.isDarkMode ? Colors.black : Colors.white,
         child: Column(
           children: [
             Row(
@@ -50,13 +51,13 @@ class _FriendRequestPage extends State<FriendRequestPage> {
                       onTap: () {
                         Navigator.pop(context);
                       },
-                      child: Icon(Icons.arrow_back, color: Colors.white),
+                      child: Icon(Icons.arrow_back, color: widget.isDarkMode ? Colors.white : Colors.black),
                     ),
                     SizedBox(width: 8),
                     Text(
                       "Friend Requests",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: widget.isDarkMode ? Colors.white : Colors.black,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -94,12 +95,12 @@ class _FriendRequestPage extends State<FriendRequestPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Icon(
-                      color: Colors.white70,
+                      color: widget.isDarkMode ? Colors.white70 : Colors.black87,
                       isSelectMode
                         ? Icons.delete 
                         : Icons.check_circle_outline_outlined ),
                     SizedBox(width: 2,),
-                    Text(isSelectMode? "Delete" : "Select", style: TextStyle(fontSize: 15, color: Colors.white),),
+                    Text(isSelectMode? "Delete" : "Select", style: TextStyle(fontSize: 15, color: widget.isDarkMode ? Colors.white : Colors.black,),),
                     if (isSelectMode) ...[
                         SizedBox(width: 6),
                         Builder(
@@ -157,7 +158,9 @@ class _FriendRequestPage extends State<FriendRequestPage> {
                           style: TextStyle(
                             color: isReceivedRequest
                                 ? Colors.blue
-                                : Colors.white,
+                                : widget.isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
                             fontWeight: isReceivedRequest
                                 ? FontWeight.bold
                                 : FontWeight.normal,
@@ -191,7 +194,11 @@ class _FriendRequestPage extends State<FriendRequestPage> {
                         Text(
                           "Requests Sent",
                           style: TextStyle(
-                            color: isSentRequest ? Colors.blue : Colors.white,
+                            color: isSentRequest
+                                ? Colors.blue
+                                : widget.isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
                             fontWeight: isSentRequest
                                 ? FontWeight.bold
                                 : FontWeight.normal,
@@ -220,8 +227,7 @@ class _FriendRequestPage extends State<FriendRequestPage> {
                             itemCount: receivedRequests.length,
                             itemBuilder: (context, index) {
                               return FriendrequestTemplate(
-                                backgroundColor: Colors.black,
-                                textColor: Colors.white,
+                                isDarkMode: widget.isDarkMode,
                                 marginSize: 3.0,
                                 fetchResult: receivedRequests[index],
                                 resultType: "received",
@@ -256,8 +262,7 @@ class _FriendRequestPage extends State<FriendRequestPage> {
                             itemCount: sentRequests.length,
                             itemBuilder: (context, index) {
                               return FriendrequestTemplate(
-                                backgroundColor: Colors.black,
-                                textColor: Colors.white,
+                                isDarkMode: widget.isDarkMode,
                                 marginSize: 3.0,
                                 fetchResult: sentRequests[index],
                                 resultType: "sent",

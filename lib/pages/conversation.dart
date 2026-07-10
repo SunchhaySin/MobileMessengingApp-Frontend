@@ -11,14 +11,14 @@ class ConversationPage extends StatefulWidget {
   final Map<String, dynamic> conversationData;
   final Map<String, dynamic> loggedInUser;
   final String friendName;
-  // final bool? isNewChat;
+  final bool isDarkMode;
 
   const ConversationPage({
     super.key,
     required this.conversationData,
     required this.loggedInUser,
     required this.friendName,
-    // required this.isNewChat
+    required this.isDarkMode,
   });
 
   @override
@@ -29,6 +29,7 @@ class _ConversationPageState extends State<ConversationPage> {
   final TextEditingController _textMessageController = TextEditingController();
   late final String conversationId;
   ConversationProvider? _conversationProvider;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -46,6 +47,9 @@ class _ConversationPageState extends State<ConversationPage> {
   }
 
   Future fetchMessage(String conversationId) async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       final url = Uri.parse(
         '${ApiConfig.baseUrl}/conversation/fetch/messages/$conversationId',
@@ -63,6 +67,9 @@ class _ConversationPageState extends State<ConversationPage> {
         final data = jsonDecode(res.body) as List<dynamic>;
         context.read<ConversationProvider>().setMessages(conversationId, data);
       }
+      setState(() {
+          isLoading = false;
+        });
     } catch (e) {
       print(e);
     }
@@ -72,7 +79,7 @@ class _ConversationPageState extends State<ConversationPage> {
     final text = _textMessageController.text;
     if (text.trim().isEmpty) return;
 
-    context.read<ConversationProvider>().sendMessage(text);
+    context.read<ConversationProvider>().sendMessage(text, widget.loggedInUser);
     _textMessageController.clear();
   }
 
@@ -97,15 +104,14 @@ class _ConversationPageState extends State<ConversationPage> {
     
     return Scaffold(
       body: Container(
-        color: Colors.black87,
+        color: widget.isDarkMode ? Colors.black : Colors.white,
         child: Column(
           children: [
             Container(
-              height: 60,
-              width: double.infinity,
+              height: 80,
               color: Colors.blueAccent,
               child: Padding(
-                padding: const EdgeInsets.only(top: 20),
+                padding: const EdgeInsets.only(top: 40, right:6),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -132,8 +138,25 @@ class _ConversationPageState extends State<ConversationPage> {
               ),
             ),
             Expanded(
-              child: messages.isNotEmpty
-                  ? ListView.builder(
+              child: isLoading
+                  ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                          backgroundColor:Colors.white, 
+                          color: Colors.black, 
+                          strokeWidth: 2.0, 
+                        ),
+                      ),
+                      SizedBox(height: 8,),
+                      Text("Loading...", style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black, fontSize: 12),)
+                    ],
+                  )
+                  : messages.isNotEmpty
+                    ? ListView.builder(
                       reverse: true,
                       padding: EdgeInsets.all(10),
                       itemCount: messages.length,
@@ -176,15 +199,24 @@ class _ConversationPageState extends State<ConversationPage> {
                                   right: 6,
                                   bottom: 4,
                                 ),
-                                child: Text(
-                                  timeago.format(
-                                    DateTime.parse(message['sentAt']),
-                                  ),
-                                  style: TextStyle(
-                                    color: Colors.white54,
-                                    fontSize: 10,
-                                  ),
-                                ),
+                                child: message['pending'] == true
+                                    ? const Text(
+                                        "Sending...",
+                                        style: TextStyle(
+                                          color: Colors.white54,
+                                          fontSize: 10,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      )
+                                    : Text(
+                                        timeago.format(
+                                          DateTime.parse(message['sentAt']),
+                                        ),
+                                        style: const TextStyle(
+                                          color: Colors.white54,
+                                          fontSize: 10,
+                                        ),
+                                      ),
                               ),
                             ],
                           ),
@@ -206,15 +238,16 @@ class _ConversationPageState extends State<ConversationPage> {
               child: TextFormField(
                 controller: _textMessageController,
                 onFieldSubmitted: (_) => _sendMessage(),
+                style: TextStyle(color: widget.isDarkMode ?Colors.black : Colors.white),
                 decoration: InputDecoration(
                   hintText: "Type a message",
-                  hintStyle: TextStyle(fontSize: 14, color: Colors.black),
+                  hintStyle: TextStyle(fontSize: 14, color: widget.isDarkMode ?Colors.black : Colors.white),
                   suffixIcon: GestureDetector(
                     onTap: () => _sendMessage(),
-                    child: Icon(Icons.send, color: Colors.blue),
+                    child: Icon(Icons.send, color: Colors.blue.shade700),
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: widget.isDarkMode ?Colors.white : Colors.black87,
                   contentPadding: EdgeInsets.symmetric(
                     vertical: 4,
                     horizontal: 8,

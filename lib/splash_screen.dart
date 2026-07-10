@@ -35,9 +35,17 @@ class _SplashscreenState extends State<Splashscreen> {
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.redAccent),
+                  borderRadius: BorderRadius.circular(25),
                 ),
-                child: Text("Hello World"), // Change to App Logo
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20.0),
+                  child: Image.asset(
+                    'asset/logo.png',
+                    width: 240,
+                    height: 90,
+                    fit: BoxFit.cover,
+                  )
+                  )
               ),
             ),
 
@@ -50,7 +58,11 @@ class _SplashscreenState extends State<Splashscreen> {
                   SizedBox(
                     width: 24,
                     height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 3),
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.white54,
+                      color: Colors.black,
+                      strokeWidth: 2.0,
+                    ),
                   ),
                   Padding(
                     padding: EdgeInsets.only(top: 15),

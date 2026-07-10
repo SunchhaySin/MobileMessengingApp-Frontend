@@ -3,10 +3,10 @@ import 'package:frontend/providers/friend_provider.dart';
 import 'package:frontend/utils/profileName.dart';
 import 'package:frontend/widgets/alert/alertWidget.dart';
 import 'package:provider/provider.dart';
+import '../providers/menu_page_provider.dart';
 
 class NotificationPage extends StatefulWidget {
-  final Map<String, dynamic> loggedInUser;
-  const NotificationPage({super.key, required this.loggedInUser});
+  const NotificationPage({super.key});
 
   @override
   State<NotificationPage> createState() => _NotificationPage();
@@ -14,14 +14,15 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPage extends State<NotificationPage> {
 
-    String composeAlertMessage(Map<String, dynamic> alertData) {
+  String composeAlertMessage(Map<String, dynamic> alertData) {
+    final currentUser = context.read<MenuPageProvider>().currentUser;
     final senderData = alertData['sender'];
     final receiverData = alertData['receiver'];
     final AlertType alertType = AlertType.values.firstWhere(
       (e) => e.value == alertData['type'],
     );
 
-    bool isReceiver = widget.loggedInUser['userID'] == receiverData['id'];
+    bool isReceiver = currentUser['userID'] == receiverData['id'];
     if (isReceiver) {
       switch (alertType) {
         case AlertType.sendRequest:
@@ -40,19 +41,20 @@ class _NotificationPage extends State<NotificationPage> {
     final senderUsername = alertData['sender']['username'];
     return ProfileName.getInitials(senderUsername);
   }
-  
 
-  @override 
+  @override
   Widget build(BuildContext context) {
     final alertsList = context.watch<FriendProvider>().alerts;
     final filteredAlerts = alertsList
-    .where((alert) => composeAlertMessage(alert) != "")
-    .toList();
+        .where((alert) => composeAlertMessage(alert) != "")
+        .toList();
+    final currentUser = context.watch<MenuPageProvider>().currentUser;
+    final isDarkMode = context.watch<MenuPageProvider>().darkMode;
 
     return SafeArea(
       child: Padding(
-        padding: EdgeInsetsGeometry.all(15),
-        child: Container(
+        padding: EdgeInsetsGeometry.symmetric(horizontal: 5),
+        child: SizedBox(
           width: double.infinity,
           child: Column(
             children: [
@@ -64,10 +66,9 @@ class _NotificationPage extends State<NotificationPage> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: isDarkMode ?Colors.white : Colors.black,
                     ),
                   ),
-                  Icon(Icons.notifications, color: Colors.white),
                 ],
               ),
               SizedBox(height: 20),
@@ -76,14 +77,16 @@ class _NotificationPage extends State<NotificationPage> {
                     ? ListView.builder(
                         itemCount: filteredAlerts.length,
                         itemBuilder: (context, index) {
-                          return 
-                          Alertwidget(
-                            loggedInUser: widget.loggedInUser,
-                            backgroundColor: Colors.black,
-                            textColor: Colors.white,
+                          return Alertwidget(
+                            loggedInUser: currentUser,
+                            isDarkMode: isDarkMode,
                             marginSize: 3.0,
-                            alertMessage: composeAlertMessage(filteredAlerts[index]),
-                            profileInitials: getProfileInitials(filteredAlerts[index]),
+                            alertMessage: composeAlertMessage(
+                              filteredAlerts[index],
+                            ),
+                            profileInitials: getProfileInitials(
+                              filteredAlerts[index],
+                            ),
                             timeStamp: filteredAlerts[index]['createdAt'],
                           );
                         },
@@ -95,8 +98,10 @@ class _NotificationPage extends State<NotificationPage> {
                         ),
                       ),
               ),
-            ],),
+            ],
+          ),
         ),
-        ));
+      ),
+    );
   }
 }

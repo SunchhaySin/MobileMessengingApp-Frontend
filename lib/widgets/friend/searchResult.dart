@@ -4,17 +4,15 @@ import 'package:provider/provider.dart';
 import '../../utils/profileName.dart';
 
 class SearchResultTemplate extends StatefulWidget {
-  final Color backgroundColor;
-  final Color textColor;
   final double marginSize;
   final Map<String, dynamic> searchResult;
+  final bool isDarkMode;
 
   const SearchResultTemplate({
     super.key,
-    required this.backgroundColor,
-    required this.textColor,
     required this.searchResult,
     required this.marginSize,
+    required this.isDarkMode
 
   });
 
@@ -45,7 +43,7 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
       padding: EdgeInsets.symmetric(horizontal: 10),
       margin: EdgeInsets.symmetric(vertical: widget.marginSize),
       decoration: BoxDecoration(
-        color: widget.backgroundColor,
+        color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade300 ,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
@@ -70,14 +68,14 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
                   Text(
                     widget.searchResult['username'],
                     style: TextStyle(
-                      color: widget.textColor,
+                      color: widget.isDarkMode ? Colors.white : Colors.black,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
                     widget.searchResult['email'],
-                    style: TextStyle(color: widget.textColor),
+                    style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black),
                   ),
                 ],
               ),

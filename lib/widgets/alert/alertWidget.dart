@@ -13,8 +13,7 @@ enum AlertType {
 
 class Alertwidget extends StatefulWidget {
   final Map<String, dynamic> loggedInUser;
-  final Color backgroundColor;
-  final Color textColor;
+  final bool isDarkMode;
   final double marginSize;
   final String alertMessage;
   final String profileInitials;
@@ -23,8 +22,7 @@ class Alertwidget extends StatefulWidget {
   const Alertwidget({
     super.key,
     required this.loggedInUser,
-    required this.backgroundColor,
-    required this.textColor,
+    required this.isDarkMode,
     required this.alertMessage,
     required this.profileInitials,
     required this.marginSize,
@@ -50,7 +48,7 @@ class _Alertwidget extends State<Alertwidget> {
         padding: EdgeInsets.symmetric(horizontal: 10),
         margin: EdgeInsets.symmetric(vertical: widget.marginSize),
         decoration: BoxDecoration(
-          color: widget.backgroundColor,
+          color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(15),
         ),
         child: Row(
@@ -63,7 +61,7 @@ class _Alertwidget extends State<Alertwidget> {
                   width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50),
-                    color: Colors.blueGrey,
+                    color: Colors.lightBlue.shade300,
                   ),
                   child: Center(
                     child: Text(
@@ -81,12 +79,22 @@ class _Alertwidget extends State<Alertwidget> {
                       padding: const EdgeInsets.only(left:2),
                       child: Text(
                         usernamePart,
-                        style: TextStyle(color: widget.textColor, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: widget.isDarkMode
+                              ? Colors.white
+                              : Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     Text(
                       messagePart,
-                      style: TextStyle(color: widget.textColor, fontSize: 12),
+                      style: TextStyle(
+                        color: widget.isDarkMode
+                            ? Colors.white70
+                            : Colors.black87,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -94,7 +102,10 @@ class _Alertwidget extends State<Alertwidget> {
             ),
             Text(
               timeago.format(DateTime.parse(widget.timeStamp)),
-              style: TextStyle(color: widget.textColor, fontSize: 12),
+              style: TextStyle(
+                color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                fontSize: 12,
+              ),
             ),
           ],
         ),

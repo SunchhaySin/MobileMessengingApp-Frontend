@@ -10,9 +10,8 @@ class ConversationWidget extends StatefulWidget {
   final VoidCallback? onTap;
   final bool hasConversation;
 
-  final Color? backgroundColor;
   final double? marginSize;
-  final Color? textColor;
+  final bool isDarkMode;
 
   const ConversationWidget({
     super.key,
@@ -23,9 +22,8 @@ class ConversationWidget extends StatefulWidget {
     this.onTap,
     required this.hasConversation,
 
-    this.backgroundColor,
     this.marginSize,
-    this.textColor,
+    required this.isDarkMode,
   });
 
   @override
@@ -49,7 +47,7 @@ class _ConversationWidgetState extends State<ConversationWidget> {
         padding: EdgeInsets.symmetric(horizontal: 10),
         margin: EdgeInsets.symmetric(vertical: widget.marginSize!),
         decoration: BoxDecoration(
-          color: widget.backgroundColor,
+          color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade300 ,
           borderRadius: BorderRadius.circular(15),
         ),
         child: Row(
@@ -62,7 +60,7 @@ class _ConversationWidgetState extends State<ConversationWidget> {
                   width: 40,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50),
-                    color: Colors.blueGrey,
+                    color: Colors.lightBlue.shade300,
                   ),
                   child: Center(
                     child: Text(profileName, style: TextStyle(fontSize: 18)),
@@ -75,7 +73,7 @@ class _ConversationWidgetState extends State<ConversationWidget> {
                   children: [
                     Text(
                       widget.username,
-                      style: TextStyle(color: widget.textColor, fontSize: 16),
+                      style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black, fontSize: 16),
                     ),
                     Text(
                       newChat
@@ -85,7 +83,7 @@ class _ConversationWidgetState extends State<ConversationWidget> {
                             ? "You: $lastMessage"
                             : lastMessage
                           : "Tap to start a converstion",
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                      style: TextStyle(color: widget.isDarkMode? Colors.white70 : Colors.black87, fontSize: 12),
                     ),
                   ],
                 ),
@@ -96,15 +94,15 @@ class _ConversationWidgetState extends State<ConversationWidget> {
                   ? SizedBox.shrink()
                   : Text(
                     timeago.format(DateTime.parse(createdAt)),
-                    style: TextStyle(color: Colors.white70, fontSize: 11),
+                    style: TextStyle(color: widget.isDarkMode? Colors.white70 : Colors.black87, fontSize: 11),
                   )
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.chat, color: Colors.white, size: 14),
+                      Icon(Icons.chat, color: widget.isDarkMode?Colors.white : Colors.black, size: 14),
                       Text(
                         "New Friend",
-                        style: TextStyle(color: Colors.white, fontSize: 12),
+                        style: TextStyle(color: widget.isDarkMode? Colors.white : Colors.black, fontSize: 12),
                       ),
                     ],
                   )

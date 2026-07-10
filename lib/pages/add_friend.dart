@@ -7,7 +7,8 @@ import 'dart:convert';
 
 class AddFriendPage extends StatefulWidget {
   final Map<String, dynamic> loggedInUser;
-  const AddFriendPage({super.key, required this.loggedInUser});
+  final bool isDarkMode;
+  const AddFriendPage({super.key, required this.loggedInUser, required this.isDarkMode});
 
   @override
   State<AddFriendPage> createState() => _AddFriendPage();
@@ -16,8 +17,10 @@ class AddFriendPage extends StatefulWidget {
 class _AddFriendPage extends State<AddFriendPage> {
   final TextEditingController _usernameController = TextEditingController();
   List<dynamic> searchResults = [];
+  bool isLoading = false;
 
   Future searchUsers(query) async {
+    setState(() => isLoading = true);
     try {
       final url = Uri.parse('${ApiConfig.baseUrl}/friend/search?q=$query');
       final res = await http.get(
@@ -41,6 +44,7 @@ class _AddFriendPage extends State<AddFriendPage> {
           ).showSnackBar(SnackBar(content: Text(response)));
         }
       }
+      setState(() => isLoading = false);
     } catch (e) {
       print(e);
     }
@@ -58,7 +62,7 @@ class _AddFriendPage extends State<AddFriendPage> {
       body: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: 50, horizontal: 10),
-        color: Colors.black87,
+        color: widget.isDarkMode ? Colors.black : Colors.white,
         child: Column(
           children: [
             Row(
@@ -67,13 +71,13 @@ class _AddFriendPage extends State<AddFriendPage> {
                   onTap: () {
                     Navigator.pop(context);
                   },
-                  child: Icon(Icons.arrow_back, color: Colors.white),
+                  child: Icon(Icons.arrow_back, color: widget.isDarkMode ? Colors.white : Colors.black),
                 ),
                 SizedBox(width: 8),
                 Text(
                   "New Friends",
                   style: TextStyle(
-                    color: Colors.white,
+                    color: widget.isDarkMode ? Colors.white : Colors.black,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -109,33 +113,56 @@ class _AddFriendPage extends State<AddFriendPage> {
                     vertical: 4,
                     horizontal: 8,
                   ),
-                  border: OutlineInputBorder(
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(50),
-                    borderSide: BorderSide.none,
+                    borderSide: BorderSide(color: widget.isDarkMode ? Colors.white : Colors.black),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: BorderSide(color: widget.isDarkMode ? Colors.white : Colors.black),
                   ),
                 ),
               ),
             ),
             Expanded(
-              child: searchResults.isNotEmpty
+              child: isLoading
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            backgroundColor: Colors.white,
+                            color: Colors.black,
+                            strokeWidth: 2.0,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Loading...",
+                          style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black, fontSize: 12),
+                        ),
+                      ],
+                    )
+                  : searchResults.isNotEmpty
                   ? ListView.builder(
                       itemCount: searchResults.length,
                       itemBuilder: (context, index) {
                         return SearchResultTemplate(
-                          backgroundColor: Colors.black,
-                          textColor: Colors.white,
                           marginSize: 3.0,
                           searchResult: searchResults[index],
+                          isDarkMode: widget.isDarkMode,
                         );
                       },
                     )
                   : Center(
                       child: Text(
                         "No Results Found",
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black),
                       ),
                     ),
-            ),
+            ) 
           ],
         ),
       ),

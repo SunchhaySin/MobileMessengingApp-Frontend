@@ -1,5 +1,4 @@
 import 'package:frontend/config/apiConfig.dart';
-// import 'package:frontend/providers/friend_provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
@@ -8,7 +7,6 @@ class SocketService {
   SocketService._internal();
   IO.Socket? socket;
 
-  // FriendProvider friendProvider
   void connect(String token) {
     socket = IO.io(
       ApiConfig.baseUrl,
@@ -25,7 +23,6 @@ class SocketService {
 
     socket!.onConnect((_) {
       print("Socket connected, ${socket!.id}");
-      // friendProvider.setupFriendListeners();
     });
 
     socket!.onDisconnect((_) {

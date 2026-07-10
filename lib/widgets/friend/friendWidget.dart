@@ -8,16 +8,14 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class Friendwidget extends StatefulWidget {
-  final Color backgroundColor;
-  final Color textColor;
+  final bool isDarkMode;
   final double marginSize;
   final Map<String, dynamic> data;
   final Map<String, dynamic> loggedInUser;
 
   const Friendwidget({
     super.key,
-    required this.backgroundColor,
-    required this.textColor,
+    required this.isDarkMode,
     required this.data,
     required this.marginSize,
     required this.loggedInUser,
@@ -45,6 +43,7 @@ class _Friendwidget extends State<Friendwidget> {
         conversationData: data,
         loggedInUser: widget.loggedInUser,
         friendName: widget.data['username'],
+        isDarkMode: widget.isDarkMode,
       )));
     } catch (e) {
       print(e);
@@ -65,7 +64,7 @@ class _Friendwidget extends State<Friendwidget> {
         padding: EdgeInsets.symmetric(horizontal: 10),
         margin: EdgeInsets.symmetric(vertical: widget.marginSize),
         decoration: BoxDecoration(
-          color: widget.backgroundColor,
+          color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(15),
         ),
         child: Row(
@@ -92,14 +91,14 @@ class _Friendwidget extends State<Friendwidget> {
                     Text(
                       widget.data['username'],
                       style: TextStyle(
-                        color: widget.textColor,
+                        color: widget.isDarkMode ? Colors.white : Colors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       widget.data['email'],
-                      style: TextStyle(color: widget.textColor),
+                      style: TextStyle(color: widget.isDarkMode? Colors.white70 : Colors.black87,),
                     ),
                   ],
                 ),

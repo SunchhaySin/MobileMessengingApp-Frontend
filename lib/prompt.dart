@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-// import 'package:frontend/layout.dart';
-import 'package:frontend/widgets/login_Interface.dart';
-import 'package:frontend/widgets/register_interface.dart';
+import 'package:frontend/widgets/auth/login_Interface.dart';
+import 'package:frontend/widgets/auth/register_interface.dart';
 
 class Prompt extends StatefulWidget {
   const Prompt({super.key});
@@ -20,7 +19,13 @@ class _Prompt extends State<Prompt> {
         width: double.infinity,
         height: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.black87,
+          gradient: LinearGradient(colors: [
+            Colors.deepPurple.shade400,
+            Colors.blue.shade400
+          ],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft
+          ),
         ),
         padding: EdgeInsets.all(20.0),
         child: Column(
@@ -40,15 +45,6 @@ class _Prompt extends State<Prompt> {
             _loginWidget 
               ? LoginInterface(backgroundColor: Colors.black, textColor:Colors.white, onRegisterClick: () => setState(() => _loginWidget =!_loginWidget,),)
               : RegisterInterface(backgroundColor: Colors.black, textColor:Colors.white, onBackClick: () => setState(() => _loginWidget =!_loginWidget,)),
-            // TextButton(
-            //   onPressed: () {
-            //     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Layout(loggedInUser: { 
-            //       "username": "AdminBypass",
-            //       "email": "admin@gmail.com",
-            //       "userID": 1,})));
-            //   },
-            //   child: Text("Bypass Login - Developer Access ONLY !!"),
-            // )
           ],
         ),
       ),

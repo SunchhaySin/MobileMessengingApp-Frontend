@@ -7,8 +7,7 @@ import '../../utils/profileName.dart';
 
 
 class FriendrequestTemplate extends StatefulWidget {
-  final Color backgroundColor;
-  final Color textColor;
+  final bool isDarkMode;
   final double marginSize;
   final Map<String, dynamic> fetchResult;
   final String resultType;
@@ -18,8 +17,7 @@ class FriendrequestTemplate extends StatefulWidget {
 
   const FriendrequestTemplate({
     super.key,
-    required this.backgroundColor,
-    required this.textColor,
+    required this.isDarkMode,
     required this.fetchResult,
     required this.marginSize,
     required this.resultType,
@@ -119,7 +117,7 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
         padding: EdgeInsets.symmetric(horizontal: 10),
         margin: EdgeInsets.symmetric(vertical: widget.marginSize),
         decoration: BoxDecoration(
-          color: widget.backgroundColor,
+          color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade300 ,
           borderRadius: BorderRadius.circular(15),
         ),
         child: Row(
@@ -149,7 +147,7 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
                         ? Text(
                             widget.fetchResult['requestTo']['username'],
                               style: TextStyle(
-                                  color: widget.textColor,
+                                  color: widget.isDarkMode ? Colors.white : Colors.black,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -157,7 +155,7 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
                         : Text(
                             widget.fetchResult['requestFrom']['username'],
                             style: TextStyle(
-                              color: widget.textColor,
+                              color: widget.isDarkMode ? Colors.white : Colors.black,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -165,11 +163,11 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
                     widget.resultType == "sent"
                         ? Text(
                             widget.fetchResult['requestTo']['email'],
-                            style: TextStyle(color: widget.textColor),
+                            style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black,),
                           )
                         : Text(
                             widget.fetchResult['requestFrom']['email'],
-                            style: TextStyle(color: widget.textColor),
+                            style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black,),
                           ),
                   ],
                 ),
@@ -194,7 +192,7 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
                             ),
                             Text(
                               "${createdAt.day}/${createdAt.month}/${createdAt.year}",
-                              style: TextStyle(color: widget.textColor),
+                              style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black),
                             ),
                           ],
                         ),
@@ -210,7 +208,7 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
                             isSelected
                                 ? Icons.check_circle_outline_outlined
                                 : Icons.circle_outlined,
-                            color: isSelected? Colors.green :Colors.white70,
+                            color: isSelected? Colors.green : widget.isDarkMode ? Colors.white70 : Colors.black87,
                           ),
                         ),
                       ],
@@ -231,7 +229,7 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
                         ),
                         Text(
                           "${createdAt.day}/${createdAt.month}/${createdAt.year}",
-                          style: TextStyle(color: widget.textColor),
+                          style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black,),
                         ),
                       ],
                     ),

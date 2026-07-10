@@ -20,7 +20,7 @@ class _ProfileRowWidget extends State<ProfileRowWidget> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(50),
         border: Border.all(color: Colors.blue, width: 1),
-        color: Colors.blueGrey,
+        color: Colors.lightBlue.shade300,
       ),
       margin: EdgeInsets.symmetric(horizontal: 3),
       child: Center(child: Text(profileName, style: TextStyle(fontSize: 18))),

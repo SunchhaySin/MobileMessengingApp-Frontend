@@ -9,10 +9,10 @@ import 'package:provider/provider.dart';
 import '../providers/conversation_provider.dart';
 import '../providers/friend_provider.dart';
 import 'dart:convert';
+import '../providers/menu_page_provider.dart';
 
 class HomePage extends StatefulWidget {
-  final Map<String, dynamic> loggedInUser;
-  const HomePage({super.key, required this.loggedInUser});
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -28,6 +28,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> openChat(String userId, String userName) async {
+    final currentUser = context.read<MenuPageProvider>().currentUser;
+    final isDarkMode = context.read<MenuPageProvider>().darkMode;
     try {
       final res = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/conversation/open'),
@@ -45,8 +47,9 @@ class _HomePageState extends State<HomePage> {
 
       Navigator.push(context, MaterialPageRoute(builder: (context) => ConversationPage(
         conversationData: data,
-        loggedInUser: widget.loggedInUser,
+        loggedInUser: currentUser,
         friendName: userName,
+        isDarkMode: isDarkMode,
       )));
     } catch (e) {
       print(e);
@@ -75,14 +78,72 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Structures the widgetList to display coversation chats (ordered by newest message)
+  List<Map<String, dynamic>> buildDisplayList(
+    List<dynamic> friendsList,
+    List<dynamic> conversationsList,
+    String myId,
+  ) {
+    final List<Map<String, dynamic>> displayList = [];
+
+    for (final friend in friendsList) {
+      final conversationIndex = conversationsList.indexWhere(
+        (c) =>
+            (c['user1Id'] == myId && c['user2Id'] == friend['id']) ||
+            (c['user1Id'] == friend['id'] && c['user2Id'] == myId),
+      );
+
+      if (conversationIndex != -1) {
+        displayList.add({
+          "friend": friend,
+          "conversation": conversationsList[conversationIndex],
+        });
+      } else {
+        displayList.add({"friend": friend, "conversation": null});
+      }
+    }
+
+    displayList.sort((a, b) {
+      final convoA = a["conversation"];
+      final convoB = b["conversation"];
+
+      // Friends with no conversation go to the bottom
+      if (convoA == null && convoB == null) return 0;
+      if (convoA == null) return 1;
+      if (convoB == null) return -1;
+
+      // Get the newest message timestamp
+      final messagesA = (convoA["messages"] as List?) ?? [];
+      final messagesB = (convoB["messages"] as List?) ?? [];
+
+      if (messagesA.isEmpty && messagesB.isEmpty) return 0;
+      if (messagesA.isEmpty) return 1;
+      if (messagesB.isEmpty) return -1;
+
+      final dateA = DateTime.parse(messagesA.first["sentAt"]);
+      final dateB = DateTime.parse(messagesB.first["sentAt"]);
+
+      return dateB.compareTo(dateA); // Newest first
+    });
+
+    return displayList;
+  }
+
   @override
   Widget build(BuildContext context) {
     final friendsList = context.watch<FriendProvider>().friends;
     final conversationsList = context.watch<ConversationProvider>().conversations;
+    final currentUser = context.watch<MenuPageProvider>().currentUser;
+    final isDarkMode = context.watch<MenuPageProvider>().darkMode;
+    final displayList = buildDisplayList(
+      friendsList,
+      conversationsList,
+      currentUser['userID'],
+    );
 
     return SafeArea(
       child: Padding(
-        padding: EdgeInsetsGeometry.symmetric(horizontal: 15),
+        padding: EdgeInsetsGeometry.symmetric(horizontal: 5),
         child: Column(
           children: [
             // ================= HEADER =================
@@ -94,10 +155,10 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
-                Icon(Icons.settings, color: Colors.white),
+                Icon(Icons.settings, color: isDarkMode ? Colors.white : Colors.black,),
               ],
             ),
 
@@ -106,21 +167,38 @@ class _HomePageState extends State<HomePage> {
               width: double.infinity,
               height: 36,
               padding: EdgeInsets.symmetric(horizontal: 3),
-              margin: EdgeInsets.symmetric(vertical: 10),
+              margin: EdgeInsets.symmetric(vertical: 15),
               child: TextFormField(
+                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                 decoration: InputDecoration(
                   hintText: "Ask AI or Search Messages",
-                  hintStyle: TextStyle(fontSize: 14, color: Colors.black),
-                  prefixIcon: Icon(Icons.search, size: 22, color: Colors.black),
+                  hintStyle: TextStyle(
+                    fontSize: 14,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    size: 22,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: isDarkMode ? Colors.black : Colors.white,
                   contentPadding: EdgeInsets.symmetric(
                     vertical: 4,
                     horizontal: 8,
                   ),
-                  border: OutlineInputBorder(
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(50),
-                    borderSide: BorderSide.none,
+                    borderSide: BorderSide(
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  ),
+
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: BorderSide(
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
                   ),
                 ),
               ),
@@ -134,7 +212,7 @@ class _HomePageState extends State<HomePage> {
                 child: Text(
                   "Activity",
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: isDarkMode ?Colors.white70 :Colors.black87,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -162,7 +240,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-            Divider(color: Colors.white12, thickness: 1),
+            Divider(color: isDarkMode ? Colors.white30 : Colors.black38, thickness: 1),
             // ================= MAIN CONTENT =================
             Padding(
               padding: const EdgeInsets.only(left: 5, bottom: 5),
@@ -171,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                 child: Text(
                   "Chats",
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: isDarkMode ?Colors.white70 :Colors.black87,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -181,51 +259,38 @@ class _HomePageState extends State<HomePage> {
             friendsList.isNotEmpty
                 ? Expanded(
                     child: ListView.builder(
-                      itemCount: friendsList.length,
+                      itemCount: displayList.length,
                       itemBuilder: (context, index) {
-                        final friend = friendsList[index];
-                        final myId = widget.loggedInUser['userID'];
-                        final conversationIndex = conversationsList.indexWhere(
-                          (c) =>
-                              (c['user1Id'] == myId &&
-                                  c['user2Id'] == friend['id']) ||
-                              (c['user1Id'] == friend['id'] &&
-                                  c['user2Id'] == myId),
-                        );
-                        final hasConversation = conversationIndex != -1;
+                        final item = displayList[index];
+                        final friend = item["friend"];
+                        final conversation = item["conversation"];
+                        final hasConversation = conversation != null;
 
-                        Map<String,dynamic>? lastMessage;
-                        if (conversationIndex != -1) {
-                          final conversation = conversationsList[conversationIndex];
-
-                          if (conversation['messages'].isNotEmpty) {
-                            lastMessage = conversation['messages'][0];
-                            print(lastMessage);
-                          } else {
-                            lastMessage = null;
+                        Map<String, dynamic>? lastMessage;
+                        if (hasConversation) {
+                          final messages = conversation["messages"] as List<dynamic>?;
+                          if (messages != null && messages.isNotEmpty) {
+                            lastMessage = messages.first;
                           }
                         }
 
                         return ConversationWidget(
-                          loggedInUser: widget.loggedInUser,
+                          loggedInUser: currentUser,
                           username: friend['username'],
-                          backgroundColor: Colors.black,
-                          textColor: Colors.white,
                           marginSize: 2.0,
                           hasConversation: hasConversation,
                           previewMessage: lastMessage,
+                          isDarkMode: isDarkMode,
                           onTap: () {
                             if (hasConversation) {
-                              final conversation =
-                                  conversationsList[conversationIndex];
-
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => ConversationPage(
                                     conversationData: conversation,
-                                    loggedInUser: widget.loggedInUser,
+                                    loggedInUser: currentUser,
                                     friendName: friend['username'],
+                                    isDarkMode: isDarkMode,
                                   ),
                                 ),
                               );

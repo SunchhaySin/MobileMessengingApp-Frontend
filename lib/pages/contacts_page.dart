@@ -4,10 +4,10 @@ import 'package:frontend/pages/friend_requests.dart';
 import 'package:frontend/providers/friend_provider.dart';
 import 'package:frontend/widgets/friend/friendWidget.dart';
 import 'package:provider/provider.dart';
+import '../providers/menu_page_provider.dart';
 
 class ContactsPage extends StatefulWidget {
-  final Map<String, dynamic> loggedInUser;
-  const ContactsPage({super.key, required this.loggedInUser});
+  const ContactsPage({super.key});
 
   @override
   State<ContactsPage> createState() => _ContactsPage();
@@ -16,11 +16,16 @@ class ContactsPage extends StatefulWidget {
 class _ContactsPage extends State<ContactsPage> {
   @override
   Widget build(BuildContext context) {
-    final friendsList = context.watch<FriendProvider>().friends; // listens for changes in friendlist and updates the UI accordingly
+    final friendsList = context
+        .watch<FriendProvider>()
+        .friends; // listens for changes in friendlist and updates the UI accordingly
+    final currentUser = context.watch<MenuPageProvider>().currentUser;
+    final isDarkMode = context.watch<MenuPageProvider>().darkMode;
+
     return SafeArea(
       child: Padding(
-        padding: EdgeInsetsGeometry.all(15),
-        child: Container(
+        padding: EdgeInsetsGeometry.symmetric(horizontal: 5),
+        child: SizedBox(
           width: double.infinity,
           child: Column(
             children: [
@@ -35,7 +40,7 @@ class _ContactsPage extends State<ContactsPage> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
                     SizedBox(
@@ -46,7 +51,7 @@ class _ContactsPage extends State<ContactsPage> {
                             width: 36,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(15),
-                              color: Colors.white,
+                              color: Colors.grey.shade300,
                             ),
                             child: Center(
                               child: InkWell(
@@ -55,12 +60,13 @@ class _ContactsPage extends State<ContactsPage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => FriendRequestPage(
-                                        loggedInUser: widget.loggedInUser,
+                                        loggedInUser: currentUser,
+                                        isDarkMode: isDarkMode,
                                       ),
                                     ),
                                   );
                                 },
-                                child: Icon(Icons.people),
+                                child: Icon(Icons.people, color: isDarkMode ? Colors.black87 : Colors.black54),
                               ),
                             ),
                           ),
@@ -70,7 +76,7 @@ class _ContactsPage extends State<ContactsPage> {
                             width: 36,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(15),
-                              color: Colors.white,
+                              color: Colors.grey.shade300,
                             ),
                             child: IconButton(
                               onPressed: () {
@@ -78,12 +84,13 @@ class _ContactsPage extends State<ContactsPage> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => AddFriendPage(
-                                      loggedInUser: widget.loggedInUser,
+                                      loggedInUser: currentUser,
+                                      isDarkMode: isDarkMode,
                                     ),
                                   ),
                                 );
                               },
-                              icon: Icon(Icons.person_add_alt_1),
+                              icon: Icon(Icons.person_add_alt_1, color: isDarkMode ? Colors.black87 : Colors.black54),
                             ),
                           ),
                         ],
@@ -100,14 +107,16 @@ class _ContactsPage extends State<ContactsPage> {
                     Text(
                       "Your Friends",
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: isDarkMode ? Colors.white70 : Colors.black87,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     SizedBox(width: 5),
                     Text(
                       "(${friendsList.length})",
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white70 : Colors.black87,
+                      ),
                     ),
                   ],
                 ),
@@ -119,11 +128,10 @@ class _ContactsPage extends State<ContactsPage> {
                         itemCount: friendsList.length,
                         itemBuilder: (context, index) {
                           return Friendwidget(
-                            backgroundColor: Colors.black,
-                            textColor: Colors.white,
+                            isDarkMode: isDarkMode,
                             marginSize: 3.0,
                             data: friendsList[index],
-                            loggedInUser: widget.loggedInUser,
+                            loggedInUser: currentUser,
                           );
                         },
                       )

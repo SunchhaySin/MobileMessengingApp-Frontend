@@ -3,7 +3,9 @@ import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/layout.dart';
 import 'package:frontend/services/token.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'dart:convert';
+import '../../providers/menu_page_provider.dart';
 
 class LoginInterface extends StatefulWidget {
   final Color? backgroundColor;
@@ -29,6 +31,7 @@ class _LoginInterface extends State<LoginInterface> {
   bool rememberMe = false;
 
   Future loginUser() async {
+    final provider = Provider.of<MenuPageProvider>(context, listen: false);
     setState(() {
       isLoading = true;
     });
@@ -49,20 +52,19 @@ class _LoginInterface extends State<LoginInterface> {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         AuthService.token = data['token'];
+
+        final loggedInUser = {
+          "username": data['data']['username'],
+          "email": data['data']['email'],
+          "userID": data['data']['id'],
+        };
+        provider.setCurrentUser(loggedInUser);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(data["message"])));
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => Layout(
-              loggedInUser: {
-                  "username": data['data']['username'],
-                  "email": data['data']['email'],
-                  "userID": data['data']['id'],
-              },
-            ),
-          ),
+          MaterialPageRoute(builder: (context) => Layout()),
         );
       } else {
         final error = jsonDecode(res.body)['message'];
@@ -94,8 +96,16 @@ class _LoginInterface extends State<LoginInterface> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
+        color: Colors.transparent.withOpacity(0.18),
         borderRadius: BorderRadius.circular(20),
-        color: widget.backgroundColor ?? Colors.amberAccent,
+        border: Border.all(color: Colors.white.withOpacity(0.25), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       padding: EdgeInsets.symmetric(vertical: 30, horizontal: 15),
       child: Column(
@@ -241,14 +251,14 @@ class _LoginInterface extends State<LoginInterface> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                            SizedBox(width: 12,),
                             SizedBox(
-                              height: 28,
-                              width: 28,
+                              height: 18,
+                              width: 18,
                               child: CircularProgressIndicator(
                                 backgroundColor: Colors.white54, // Color of the underlying track
                                 color: Colors.black, // Color of the moving indicator
-                                strokeWidth:
-                                    2.0, // Thickness of the circle lines
+                                strokeWidth: 2.0, // Thickness of the circle lines
                               ),
                             ),
                           ],

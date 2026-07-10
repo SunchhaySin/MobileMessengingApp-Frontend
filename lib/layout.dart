@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/pages/contacts_page.dart';
 import 'package:frontend/pages/home_page.dart';
@@ -12,10 +11,10 @@ import 'package:frontend/services/socket.dart';
 import 'package:frontend/services/token.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'providers/menu_page_provider.dart';
 
 class Layout extends StatefulWidget {
-  final Map<String, dynamic> loggedInUser;
-  const Layout({super.key, required this.loggedInUser});
+  const Layout({super.key});
 
   @override
   State<Layout> createState() => _Layout();
@@ -42,10 +41,10 @@ class _Layout extends State<Layout> {
   });
     
     pages = [
-      Expanded(child: HomePage(loggedInUser: widget.loggedInUser)),
-      Expanded(child: ContactsPage(loggedInUser: widget.loggedInUser)),
-      Expanded(child: NotificationPage(loggedInUser: widget.loggedInUser)),
-      Expanded(child: MenuPage(loggedInUser: widget.loggedInUser)),
+      Expanded(child: HomePage()),
+      Expanded(child: ContactsPage()),
+      Expanded(child: NotificationPage()),
+      Expanded(child: MenuPage()),
     ];
   }
 
@@ -137,20 +136,22 @@ class _Layout extends State<Layout> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = context.watch<MenuPageProvider>().darkMode;
     return Scaffold(
       body: Container(
-        color: Colors.black87,
+        color: isDarkMode? Colors.black : Colors.white,
         child: Column(
           children: [
             pages[currentPageIndex],
             Padding(
               padding: const EdgeInsets.only(bottom: 15, left: 10, right:10),
               child: Container(
-                height: 60,
+                height: 62,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(50),
-                  color: Colors.black,
+                  color: Colors.blue.shade300
                 ),
+                padding: EdgeInsets.symmetric(vertical:5),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -222,18 +223,45 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 24, color: isActive ? Colors.blue : Colors.white),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isActive ? Colors.blue : Colors.white,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        decoration: BoxDecoration(
+          color: isActive
+              ? Colors.white.withOpacity(0.45)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: isActive 
+            ? Border.all(color: Colors.black.withOpacity(0.25), width: 1.2)
+            : null,
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: Colors.blue.shade500,
+                    blurRadius: 5,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : [],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color: isActive 
+                ? Colors.deepPurple.shade800 
+                : Colors.black,
             ),
-          ),
-        ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isActive ? Colors.deepPurple : Colors.black,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

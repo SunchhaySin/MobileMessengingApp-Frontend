@@ -6,7 +6,7 @@ class FriendRequestDialog {
   final bool isReceived;
   final void Function(String) onAccept;
   final void Function(String) onReject;
-  final void Function(String,) onRemove;
+  final void Function(String) onRemove;
 
   const FriendRequestDialog({
     required this.requestId,
