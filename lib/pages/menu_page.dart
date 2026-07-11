@@ -110,7 +110,7 @@ class _MenuPage extends State<MenuPage> {
                       isDarkMode: isDarkMode,
                       ontap:() =>  Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => DarkModePage(isDarkMode: isDarkMode)),
+                        MaterialPageRoute(builder: (context) => DarkModePage()),
                       ),
                     ),
 
@@ -130,12 +130,46 @@ class _MenuPage extends State<MenuPage> {
                         width: 350,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: Colors.red.shade400,
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: Center(
                           child: Text(
                             "Log out",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Divider(color: isDarkMode ? Colors.white30 : Colors.black38),
+
+                    // Delete Account 
+                    Text(
+                      "Deativate Account",
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white70 : Colors.black87,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    GestureDetector(
+                      onTap: () {
+       
+                      },
+                      child: Container(
+                        width: 350,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade800,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Delete this Account",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

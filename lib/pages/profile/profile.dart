@@ -1,19 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/apiConfig.dart';
+import 'package:frontend/pages/profile/reset_password_page.dart';
+import 'package:frontend/services/token.dart';
+import 'package:provider/provider.dart';
+import '../../providers/menu_page_provider.dart';
 import '../../widgets/menu/ListTile.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class MyProfile extends StatefulWidget {
   final Map<String, dynamic> loggedInUser;
   final bool isDarkMode;
-  const MyProfile({super.key, required this.loggedInUser, required this.isDarkMode});
+  const MyProfile({
+    super.key,
+    required this.loggedInUser,
+    required this.isDarkMode,
+  });
 
   @override
   State<MyProfile> createState() => _MyProfileState();
 }
 
 class _MyProfileState extends State<MyProfile> {
-  late final TextEditingController usernameController;
-  late final TextEditingController contactController = TextEditingController();
+  late final TextEditingController usernameController = TextEditingController();
   late final TextEditingController bioController = TextEditingController();
+  late final TextEditingController contactController = TextEditingController();
 
   bool isEditUsername = false;
   bool isEditContacts = false;
@@ -22,203 +35,498 @@ class _MyProfileState extends State<MyProfile> {
   @override
   void initState() {
     super.initState();
-    usernameController = TextEditingController(
-      text: widget.loggedInUser['username'],
+    usernameController.text = widget.loggedInUser['username'];
+  }
+
+  Future<void> updateUsername() async {
+    try {
+      final provider = Provider.of<MenuPageProvider>(context, listen: false);
+      final res = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/profile/name'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${AuthService.token}',
+        },
+        body: jsonEncode({"newUsername": usernameController.text}),
+      );
+
+      final data = jsonDecode(res.body);
+      usernameController.text = data['newUsername'];
+      provider.updateUsername(data['newUsername']);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> saveContacts() async {
+    try {
+      final provider = Provider.of<MenuPageProvider>(context, listen: false);
+
+      final res = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/profile/contacts'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${AuthService.token}',
+        },
+        body: jsonEncode({"contacts": contactController.text}),
+      );
+      final data = jsonDecode(res.body);
+      contactController.text = data['contact'];
+      provider.updateContact(data['contact']);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+    Future<void> saveBio() async {
+    try {
+      final provider = Provider.of<MenuPageProvider>(context, listen: false);
+
+      final res = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/profile/bio'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${AuthService.token}',
+        },
+        body: jsonEncode({"newBio": bioController.text}),
+      );
+      final data = jsonDecode(res.body);
+      bioController.text = data['bio'];
+      provider.updateBio(data['bio']);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> uploadImage(File image) async {
+    try {
+      final provider = Provider.of<MenuPageProvider>(context, listen: false);
+      final request = http.MultipartRequest(
+        "POST",
+        Uri.parse("${ApiConfig.baseUrl}/profile/image"),
+      );
+
+      request.headers["Authorization"] =
+          "Bearer ${AuthService.token}";
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          "image",        // Must match upload.single("image")
+          image.path,
+        ),
+      );
+
+      final response = await request.send();
+      final body = await response.stream.bytesToString();
+
+      final data = jsonDecode(body);
+      provider.updateProfilePicture(data["profileUrl"]);
+      print(body);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  final ImagePicker _picker = ImagePicker();
+  Future<void> pickImage() async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
     );
+
+    if (image == null) return;
+
+    uploadImage(File(image.path));
   }
 
   @override
   Widget build(BuildContext context) {
+    final myDisplayName = context.watch<MenuPageProvider>().currentUser['username'];
+    final myContacts = context.watch<MenuPageProvider>().myContacts;
+    final myBio = context.watch<MenuPageProvider>().myBio;
+    final profilePicture = context.watch<MenuPageProvider>().profilePicture;
+
+    contactController.text = myContacts;
+    bioController.text = myBio;
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 50, horizontal: 10),
-        color: widget.isDarkMode ?Colors.black :Colors.white,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Icon(Icons.arrow_back, color: widget.isDarkMode ?Colors.white :Colors.black),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  "Your Profile",
-                  style: TextStyle(
-                    color: widget.isDarkMode ?Colors.white :Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        child: Container(
+          width: double.infinity,
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height,
+          ),
+          padding: EdgeInsets.symmetric(vertical: 50, horizontal: 10),
+          color: widget.isDarkMode ? Colors.black : Colors.white,
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: widget.isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    "Your Profile",
+                    style: TextStyle(
+                      color: widget.isDarkMode ? Colors.white : Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              CircleAvatar(
+                radius: 35,
+                backgroundColor: widget.isDarkMode ? Colors.white : Colors.black,
+                backgroundImage: profilePicture.isNotEmpty
+                    ? NetworkImage(profilePicture)
+                    : null,
+                child: profilePicture.isEmpty
+                    ? Text(
+                        "profileimg",
+                        style: TextStyle(
+                          color: widget.isDarkMode ? Colors.black : Colors.white,
+                        ),
+                      )
+                    : null,
+              ),
+              GestureDetector(
+                onTap: pickImage,
+                child: Container(
+                  padding: EdgeInsets.all(3),
+                  margin: EdgeInsets.only(top: 5),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.blueAccent.shade200),
+                    borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  ),
+                  child: Text(
+                    "Add Profile",
+                    style: TextStyle(color: Colors.blue, fontSize: 12),
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: 20,),
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: widget.isDarkMode ?Colors.white :Colors.black,
-              child: Text(
-                "profileimg",
-                style: TextStyle(color: widget.isDarkMode ?Colors.black :Colors.white),
               ),
-            ),
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                padding: EdgeInsets.all(3),
-                margin: EdgeInsets.only(top: 5),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.blueAccent.shade200),
-                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                ),
-                child: Text(
-                  "Add Profile",
-                  style: TextStyle(color: Colors.blue, fontSize: 12),
+              SizedBox(
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  child: Text(
+                    "Username",
+                    style: TextStyle(
+                      color: widget.isDarkMode ? Colors.white70 : Colors.black,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 14),
-            TileTemplate(
-              title: isEditUsername
-                  ? TextFormField(
-                      controller: usernameController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.blue),
+              TileTemplate(
+                title: isEditUsername
+                    ? Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: TextFormField(
+                          controller: usernameController,
+                          style: TextStyle(color: widget.isDarkMode ?Colors.white :Colors.black),
+                          decoration: InputDecoration(
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.blue),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.blue),
+                            ),
+                          ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.blue),
+                      )
+                    : Text(
+                        myDisplayName,
+                        style: TextStyle(color: Colors.blue, fontSize: 15),
+                      ),
+                subtitle: "Display Name",
+                subtitleColor: Colors.grey.shade400,
+                isDarkMode: widget.isDarkMode,
+                trailingWidget: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: InkWell(
+                        onTap: () {
+                          if (isEditUsername) {
+                            updateUsername();
+                            setState(() => isEditUsername = false);
+                          } else {
+                            setState(() => isEditUsername = true);
+                            setState(() => isEditBio = false);
+                            setState(() => isEditContacts = false);
+                          }
+                        },
+                        child: Text(
+                          isEditUsername ? "Confirm" : "Edit",
+                          style: const TextStyle(
+                            color: Colors.lightGreen,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    )
-                  : Text(
-                      widget.loggedInUser['username'],
-                      style: TextStyle(color: Colors.blue, fontSize: 15),
                     ),
-              subtitle: "Display Name",
-              subtitleColor: Colors.grey.shade400,
-        
-              isDarkMode:  widget.isDarkMode,
-              trailingWidget: TextButton(
-                onPressed: () {
-                  setState(() => isEditUsername = !isEditUsername);
-                  setState(() => isEditBio = false);
-                  setState(() => isEditContacts = false);
-                },
-                child: Text(
-                  isEditUsername ? "Confirm" : "Edit",
-                  style: const TextStyle(
-                    color: Colors.lightGreen,
-                    fontWeight: FontWeight.bold,
+                    isEditUsername
+                        ? Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: InkWell(
+                              onTap: () => setState(() => isEditUsername = false),
+                              child: Text(
+                                "Cancel",
+                                style: const TextStyle(
+                                  color: Colors.redAccent,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          )
+                        : SizedBox.shrink(),
+                  ],
+                ),
+              ),
+              SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Text(
+                    "Contacts",
+                    style: TextStyle(
+                      color: widget.isDarkMode
+                          ? Colors.white70
+                          : Colors.black,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
               ),
-              ontap: () => setState(() {
-                if (isEditUsername) {}
-              }),
-            ),
-            SizedBox(height: 5),
-            TileTemplate(
-              title: isEditContacts
-                  ? TextFormField(
-                      controller: contactController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.blue),
+              TileTemplate(
+                    title: isEditContacts
+                        ? TextFormField(
+                            controller: contactController,
+                            style: TextStyle(color: widget.isDarkMode ?Colors.white :Colors.black),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: Colors.blue),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: Colors.blue),
+                              ),
+                            ),
+                          )
+                        : Text(
+                            myContacts == ""
+                                ? "Not set"
+                                : myContacts,
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontSize: 15,
+                            ),
+                          ),
+                    isDarkMode: widget.isDarkMode,
+                    trailingWidget: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: InkWell(
+                            onTap: () {
+                              if (isEditContacts) {
+                                saveContacts();
+                                setState(() => isEditContacts = false);
+                              } else {
+                                contactController.text = myContacts;
+                                setState(() => isEditContacts = true);
+                                setState(() => isEditUsername = false);
+                                setState(() => isEditBio = false);
+                              }
+                            },
+                            child: Text(
+                              isEditContacts ? "Save" : "Edit",
+                              style: const TextStyle(
+                                color: Colors.lightGreen,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.blue),
+        
+                        isEditContacts
+                            ? Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: InkWell(
+                                  onTap: () =>
+                                      setState(() => isEditContacts = false),
+                                  child: Text(
+                                    "Cancel",
+                                    style: const TextStyle(
+                                      color: Colors.redAccent,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : SizedBox.shrink(),
+                      ],
+                    ),
+              ),
+              SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Text(
+                      "Bio",
+                      style: TextStyle(
+                        color: widget.isDarkMode ? Colors.white70 : Colors.black,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              TileTemplate(
+                title: isEditBio
+                    ? TextFormField(
+                        controller: bioController,
+                        style: TextStyle(color: widget.isDarkMode ?Colors.white :Colors.black),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.blue),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.blue),
+                          ),
+                        ),
+                      )
+                    : Text(
+                        myBio == "" ? "Not set" : myBio,
+                        style: TextStyle(color: Colors.blue, fontSize: 15),
+                      ),
+                isDarkMode: widget.isDarkMode,
+                trailingWidget: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: InkWell(
+                        onTap: () {
+                          if (isEditBio) {
+                            saveBio();
+                            setState(() => isEditBio = false);
+                          } else {
+                            bioController.text = myBio;
+                            setState(() => isEditBio = true);
+                            setState(() => isEditContacts = false);
+                            setState(() => isEditUsername = false);
+                          }
+                        },
+                        child: Text(
+                          isEditBio ? "Save" : "Edit",
+                          style: const TextStyle(
+                            color: Colors.lightGreen,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    )
-                  : Text(
-                     "none",
-                      style: TextStyle(color: Colors.blue, fontSize: 15),
                     ),
-              subtitle: "Contacts",
-              subtitleColor: Colors.grey.shade400,
         
-              isDarkMode:  widget.isDarkMode,
-              trailingWidget: TextButton(
-                onPressed: () {
-                   setState(() => isEditContacts = !isEditContacts);
-                   setState(() => isEditUsername = false);
-                   setState(() => isEditBio = false);
-                },
-                child: Text(
-                  "Edit",
-                  style: const TextStyle(
-                    color: Colors.lightGreen,
-                    fontWeight: FontWeight.bold,
-                  ),
+                    isEditBio
+                        ? Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: InkWell(
+                              onTap: () => setState(() => isEditBio = false),
+                              child: Text(
+                                "Cancel",
+                                style: const TextStyle(
+                                  color: Colors.redAccent,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          )
+                        : SizedBox.shrink(),
+                      
+                  ],
                 ),
               ),
-              ontap: () => setState(() {
-                // dropdownActive = !dropdownActive;
-              }),
-            ),
-            SizedBox(height: 5),
-            TileTemplate(
-              title: isEditBio
-                  ? TextFormField(
-                      controller: bioController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.blue),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.blue),
-                        ),
+              SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Text(
+                      "Password Reset",
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 15,
                       ),
-                    )
-                  : Text(
-                     "none",
-                      style: TextStyle(color: Colors.blue, fontSize: 15),
                     ),
-              subtitle: "bio",
-              subtitleColor: Colors.grey.shade400,
-        
-              isDarkMode:  widget.isDarkMode,
-              trailingWidget: TextButton(
-                onPressed: () {
-                  setState(() => isEditBio = !isEditBio);
-                  setState(() => isEditContacts = false);
-                  setState(() => isEditUsername = false);
-                },
-                child: Text(
-                  "Edit",
-                  style: const TextStyle(
-                    color: Colors.lightGreen,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              ontap: () => setState(() {
-                // dropdownActive = !dropdownActive;
-              }),
-            ),
-            SizedBox(height: 10),
-          ],
+              TileTemplate(
+                title: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Password:",
+                      style: TextStyle(
+                        color: widget.isDarkMode
+                            ? Colors.white70
+                            : Colors.black87,
+                      ),
+                    ),
+                    SizedBox(width: 5,),
+                    Text(
+                      "**********",
+                      style: TextStyle(color: Colors.blue, fontSize: 15),
+                    ),
+                  ],
+                ),
+                isDarkMode: widget.isDarkMode,
+                trailingWidget: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: InkWell(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ResetPasswordPage())),
+                    child: Text(
+                      "Reset Password",
+                      style: const TextStyle(
+                        color: Colors.lightGreen,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-

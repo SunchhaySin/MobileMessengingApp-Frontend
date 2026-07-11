@@ -30,4 +30,46 @@ class MenuPageProvider extends ChangeNotifier{
     _darkMode = false;
     notifyListeners();
   } 
+
+  // Stored Profile Data
+  String _myContacts = "";
+  String get myContacts  => _myContacts;
+
+  String _myBio = "";
+  String get myBio => _myBio;
+
+
+  void setContacts(String data) {
+    _myContacts = data;
+    notifyListeners();
+  }
+
+  void updateContact(String data) {
+    _myContacts = data;
+    notifyListeners();
+  }
+
+  void setBio(String data) {
+    _myBio = data;
+    notifyListeners();
+  }
+
+  void updateBio(String newBio) {
+    _myBio = newBio;
+    notifyListeners();
+  }
+
+  // Profile Picture
+  String _profilePicture = "";
+  String get profilePicture => _profilePicture;
+
+  void setProfilePicture(String data) {
+    _profilePicture = data;
+    notifyListeners();
+  }
+
+  void updateProfilePicture(String newProfilePicture) {
+    _profilePicture = newProfilePicture;
+    notifyListeners();
+  }
 }
