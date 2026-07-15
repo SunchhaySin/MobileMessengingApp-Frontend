@@ -12,6 +12,7 @@ class ConversationWidget extends StatefulWidget {
 
   final double? marginSize;
   final bool isDarkMode;
+  final String? profileUrl;
 
   const ConversationWidget({
     super.key,
@@ -24,6 +25,7 @@ class ConversationWidget extends StatefulWidget {
 
     this.marginSize,
     required this.isDarkMode,
+    this.profileUrl,
   });
 
   @override
@@ -55,17 +57,25 @@ class _ConversationWidgetState extends State<ConversationWidget> {
           children: [
             Row(
               children: [
-                Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(50),
-                    color: Colors.lightBlue.shade300,
-                  ),
-                  child: Center(
-                    child: Text(profileName, style: TextStyle(fontSize: 18)),
-                  ),
-                ),
+                widget.profileUrl != null
+                    ? CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(widget.profileUrl!),
+                      )
+                    : Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          color: Colors.lightBlue.shade300,
+                        ),
+                        child: Center(
+                          child: Text(
+                            profileName,
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
                 SizedBox(width: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

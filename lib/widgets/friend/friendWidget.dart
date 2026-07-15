@@ -53,6 +53,8 @@ class _Friendwidget extends State<Friendwidget> {
   @override
   Widget build(BuildContext context) {
     final profileName = ProfileName.getInitials(widget.data['username']);
+    final profileImage = widget.data['profile']?['profileUrl'];
+
     return InkWell(
       onTap: () => FriendDetailDialog(
         friendProfile: widget.data,
@@ -72,17 +74,25 @@ class _Friendwidget extends State<Friendwidget> {
           children: [
             Row(
               children: [
-                Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(50),
-                    color: Colors.blueGrey,
-                  ),
-                  child: Center(
-                    child: Text(profileName, style: TextStyle(fontSize: 18)),
-                  ),
-                ),
+                profileImage != null
+                    ? CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(profileImage),
+                      )
+                    : Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          color: Colors.lightBlue.shade300,
+                        ),
+                        child: Center(
+                          child: Text(
+                            profileName,
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
                 SizedBox(width: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

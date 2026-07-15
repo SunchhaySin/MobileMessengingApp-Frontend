@@ -228,7 +228,7 @@ class _HomePageState extends State<HomePage> {
                         itemCount: friendsList.length,
                         itemBuilder: (context, index) {
                           final friend = friendsList[index];
-                          return ProfileRowWidget(username: friend['username']);
+                          return ProfileRowWidget(username: friend['username'], profileUrl: friend['profile']?['profileUrl'],);
                         },
                       ),
                     ),
@@ -273,7 +273,7 @@ class _HomePageState extends State<HomePage> {
                             lastMessage = messages.first;
                           }
                         }
-
+                        final profileUrl = friend['profile']?['profileUrl'];
                         return ConversationWidget(
                           loggedInUser: currentUser,
                           username: friend['username'],
@@ -281,6 +281,7 @@ class _HomePageState extends State<HomePage> {
                           hasConversation: hasConversation,
                           previewMessage: lastMessage,
                           isDarkMode: isDarkMode,
+                          profileUrl: profileUrl,
                           onTap: () {
                             if (hasConversation) {
                               Navigator.push(

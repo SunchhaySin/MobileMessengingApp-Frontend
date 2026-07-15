@@ -105,7 +105,7 @@ class _Layout extends State<Layout> {
     }
   }
 
-    Future fetchFriend() async {
+  Future fetchFriend() async {
     try {
       final provider = Provider.of<FriendProvider>(context, listen: false);
       if (provider.friendLoaded) return;
@@ -150,8 +150,7 @@ class _Layout extends State<Layout> {
         if(data != null){
           provider.setContacts(data['contacts']);
           provider.setBio(data['bio']);
-          provider.updateProfilePicture(data['profileUrl']);
-          
+          provider.setProfilePicture(data['profileUrl']);
         }
       }
     } catch(e) {

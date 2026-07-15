@@ -21,6 +21,7 @@ class FriendDetailDialog {
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
+        final profileImage = friendProfile['profile']?['profileUrl'];
         return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -31,18 +32,23 @@ class FriendDetailDialog {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: Colors.blueGrey,
-                  child: Text(
-                    profileName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
+                profileImage != null
+                    ? CircleAvatar(
+                        radius: 22,
+                        backgroundImage: NetworkImage(profileImage),
+                      )
+                    : CircleAvatar(
+                        radius: 22,
+                        backgroundColor: Colors.blueGrey,
+                        child: Text(
+                          profileName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
                 SizedBox(height: 6),
                 Text(
                   friendProfile['username'],

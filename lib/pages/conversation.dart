@@ -200,10 +200,10 @@ class _ConversationPageState extends State<ConversationPage> {
                                   bottom: 4,
                                 ),
                                 child: message['pending'] == true
-                                    ? const Text(
+                                    ? Text(
                                         "Sending...",
                                         style: TextStyle(
-                                          color: Colors.white54,
+                                          color: widget.isDarkMode ?Colors.white54  :Colors.black87,
                                           fontSize: 10,
                                           fontStyle: FontStyle.italic,
                                         ),
@@ -212,8 +212,8 @@ class _ConversationPageState extends State<ConversationPage> {
                                         timeago.format(
                                           DateTime.parse(message['sentAt']),
                                         ),
-                                        style: const TextStyle(
-                                          color: Colors.white54,
+                                        style: TextStyle(
+                                          color: widget.isDarkMode ?Colors.white54  :Colors.black87,
                                           fontSize: 10,
                                         ),
                                       ),

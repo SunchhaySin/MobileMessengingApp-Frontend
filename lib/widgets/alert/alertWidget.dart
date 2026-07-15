@@ -18,6 +18,7 @@ class Alertwidget extends StatefulWidget {
   final String alertMessage;
   final String profileInitials;
   final String timeStamp;
+  final String? profileUrl;
 
   const Alertwidget({
     super.key,
@@ -26,7 +27,8 @@ class Alertwidget extends StatefulWidget {
     required this.alertMessage,
     required this.profileInitials,
     required this.marginSize,
-    required this.timeStamp
+    required this.timeStamp,
+    this.profileUrl
   });
 
   @override
@@ -56,20 +58,25 @@ class _Alertwidget extends State<Alertwidget> {
           children: [
             Row(
               children: [
-                Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(50),
-                    color: Colors.lightBlue.shade300,
-                  ),
-                  child: Center(
-                    child: Text(
-                      widget.profileInitials,
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
+                widget.profileUrl != null
+                    ? CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(widget.profileUrl!),
+                      )
+                    : Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          color: Colors.lightBlue.shade300,
+                        ),
+                        child: Center(
+                          child: Text(
+                            widget.profileInitials,
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
                 SizedBox(width: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

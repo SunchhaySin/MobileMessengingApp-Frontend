@@ -12,6 +12,7 @@ class FriendrequestTemplate extends StatefulWidget {
   final Map<String, dynamic> fetchResult;
   final String resultType;
   final bool selectMode;
+  final String? profileUrl;
 
   final void Function(String requestId, bool selected) onSelection; // send Request id back to parent
 
@@ -23,6 +24,7 @@ class FriendrequestTemplate extends StatefulWidget {
     required this.resultType,
     required this.selectMode,
     required this.onSelection,
+    this.profileUrl
   });
 
   @override
@@ -92,7 +94,7 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
       widget.resultType == "sent" 
         ? widget.fetchResult['requestTo']['username']
         : widget.fetchResult['requestFrom']['username']);
-    
+
     return InkWell(
       onTap: () {
         widget.selectMode 
@@ -109,6 +111,7 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
               onAccept: acceptRequest,
               onReject: rejectRequest,
               onRemove: (id) => removeSignleRequest(id, widget.resultType),
+              profileUrl: widget.profileUrl
             ).openDialog(context);
       },
       child: Container(
@@ -129,15 +132,25 @@ class _FriendrequestTemplate extends State<FriendrequestTemplate> {
                   ? Icon(Icons.call_made, color: Colors.blue)
                   : Icon(Icons.call_received, color: Colors.blue),
                 SizedBox(width: 8),
-                Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(50),
-                    color: Colors.blueGrey,
-                  ),
-                  child: Center(child: Text(profileName, style: TextStyle(fontSize: 18),)),
-                ),
+                widget.profileUrl != null
+                    ? CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(widget.profileUrl!),
+                      )
+                    : Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          color: Colors.blueGrey,
+                        ),
+                        child: Center(
+                          child: Text(
+                            profileName,
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
                 SizedBox(width: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

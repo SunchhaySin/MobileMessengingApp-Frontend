@@ -29,7 +29,8 @@ class _MenuPage extends State<MenuPage> {
   Widget build(BuildContext context) {
     final currentUser = context.watch<MenuPageProvider>().currentUser;
     final isDarkMode = context.watch<MenuPageProvider>().darkMode;
-    
+    final profileUrl = context.watch<MenuPageProvider>().profileUrl;
+
     return SafeArea(
       child: Padding(
         padding: EdgeInsetsGeometry.symmetric(horizontal: 5),
@@ -70,14 +71,24 @@ class _MenuPage extends State<MenuPage> {
                         color: isDarkMode ?Colors.white : Colors.black,
                         size: 14,
                       ),
-                      leadingWidget: Container(
-                        width: 45,
-                        height: 45,
-                        decoration: BoxDecoration(
-                          color: isDarkMode ?Colors.white : Colors.black,
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        child: Center(child: Text("profile", style: TextStyle(color: isDarkMode ?Colors.black : Colors.white),)),
+                      leadingWidget: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: isDarkMode
+                            ? Colors.white
+                            : Colors.black,
+                        backgroundImage: profileUrl.isNotEmpty
+                            ? NetworkImage(profileUrl)
+                            : null,
+                        child: profileUrl.isEmpty
+                            ? Text(
+                                "profileimg",
+                                style: TextStyle(
+                                  color: isDarkMode
+                                      ? Colors.black
+                                      : Colors.white,
+                                ),
+                              )
+                            : null,
                       ),
                       isDarkMode: isDarkMode,
                       ontap: () => Navigator.push(

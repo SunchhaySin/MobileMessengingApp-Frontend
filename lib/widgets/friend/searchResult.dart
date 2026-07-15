@@ -37,6 +37,8 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
   @override
   Widget build(BuildContext context) {
     final profileName = ProfileName.getInitials(widget.searchResult['username']);
+    final profileImage = widget.searchResult['profile']?['profileUrl'];
+
     return Container(
       width: double.infinity,
       height: 60,
@@ -51,15 +53,25 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
         children: [
           Row(
             children: [
-              Container(
-                height: 40,
-                width: 40,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
-                  color: Colors.blueGrey,
-                ),
-                child: Center(child: Text(profileName, style: TextStyle(fontSize: 18),)),
-              ),
+              profileImage != null
+                  ? CircleAvatar(
+                      radius: 20,
+                      backgroundImage: NetworkImage(profileImage),
+                    )
+                  : Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        color: Colors.blueGrey,
+                      ),
+                      child: Center(
+                        child: Text(
+                          profileName,
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ),
               SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

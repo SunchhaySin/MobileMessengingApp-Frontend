@@ -4,6 +4,7 @@ class FriendRequestDialog {
   final String requestId;
   final String username;
   final bool isReceived;
+  final String? profileUrl;
   final void Function(String) onAccept;
   final void Function(String) onReject;
   final void Function(String) onRemove;
@@ -15,6 +16,7 @@ class FriendRequestDialog {
     required this.onAccept,
     required this.onReject,
     required this.onRemove,
+    this.profileUrl
   });
 
   void openDialog(BuildContext context) {
@@ -36,18 +38,25 @@ class FriendRequestDialog {
                 // Header
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: Colors.blueGrey,
-                      child: Text(
-                        username.isNotEmpty ? username[0].toUpperCase() : '?',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
+                    profileUrl != null
+                        ? CircleAvatar(
+                            radius: 20,
+                            backgroundImage: NetworkImage(profileUrl!),
+                          )
+                        : CircleAvatar(
+                            radius: 22,
+                            backgroundColor: Colors.blueGrey,
+                            child: Text(
+                              username.isNotEmpty
+                                  ? username[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

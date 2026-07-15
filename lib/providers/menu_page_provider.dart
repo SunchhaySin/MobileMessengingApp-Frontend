@@ -60,16 +60,16 @@ class MenuPageProvider extends ChangeNotifier{
   }
 
   // Profile Picture
-  String _profilePicture = "";
-  String get profilePicture => _profilePicture;
+  String _profileUrl = "";
+  String get profileUrl => _profileUrl;
 
   void setProfilePicture(String data) {
-    _profilePicture = data;
+    _profileUrl = data;
     notifyListeners();
   }
 
-  void updateProfilePicture(String newProfilePicture) {
-    _profilePicture = newProfilePicture;
+  void updateProfilePicture(String newProfileUrl) {
+    _profileUrl = newProfileUrl;
     notifyListeners();
   }
 }

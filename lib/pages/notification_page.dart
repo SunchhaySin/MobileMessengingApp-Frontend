@@ -77,6 +77,9 @@ class _NotificationPage extends State<NotificationPage> {
                     ? ListView.builder(
                         itemCount: filteredAlerts.length,
                         itemBuilder: (context, index) {
+                          final alert = filteredAlerts[index];
+                          final profileUrl = alert['sender']['profile']?['profileUrl'];
+   
                           return Alertwidget(
                             loggedInUser: currentUser,
                             isDarkMode: isDarkMode,
@@ -88,6 +91,7 @@ class _NotificationPage extends State<NotificationPage> {
                               filteredAlerts[index],
                             ),
                             timeStamp: filteredAlerts[index]['createdAt'],
+                            profileUrl: profileUrl,
                           );
                         },
                       )

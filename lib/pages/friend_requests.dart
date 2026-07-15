@@ -226,12 +226,16 @@ class _FriendRequestPage extends State<FriendRequestPage> {
                         ? ListView.builder(
                             itemCount: receivedRequests.length,
                             itemBuilder: (context, index) {
+                              final request = receivedRequests[index];
+                              final profileUrl = request['requestFrom']['profile']?['profileUrl'];
+
                               return FriendrequestTemplate(
                                 isDarkMode: widget.isDarkMode,
                                 marginSize: 3.0,
                                 fetchResult: receivedRequests[index],
                                 resultType: "received",
                                 selectMode: isSelectMode? true : false,
+                                profileUrl: profileUrl,
                                 onSelection: (requestId, selected) {
                                   setState(() {
                                     if (selected) {
@@ -261,12 +265,16 @@ class _FriendRequestPage extends State<FriendRequestPage> {
                         ? ListView.builder(
                             itemCount: sentRequests.length,
                             itemBuilder: (context, index) {
+                              final request = sentRequests[index];
+                              final profileUrl = request['requestTo']['profile']?['profileUrl'];
+                              
                               return FriendrequestTemplate(
                                 isDarkMode: widget.isDarkMode,
                                 marginSize: 3.0,
                                 fetchResult: sentRequests[index],
                                 resultType: "sent",
                                 selectMode: isSelectMode? true : false,
+                                profileUrl: profileUrl,
                                 onSelection: (requestId, selected) {
                                   setState(() {
                                     if (selected) {

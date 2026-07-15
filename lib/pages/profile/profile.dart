@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/config/apiConfig.dart';
+import 'package:frontend/pages/profile/profile_history.dart';
 import 'package:frontend/pages/profile/reset_password_page.dart';
 import 'package:frontend/services/token.dart';
+import 'package:frontend/widgets/dialog/viewProfile.dart';
 import 'package:provider/provider.dart';
 import '../../providers/menu_page_provider.dart';
 import '../../widgets/menu/ListTile.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
+import 'package:path_provider/path_provider.dart';
 
 class MyProfile extends StatefulWidget {
   final Map<String, dynamic> loggedInUser;
@@ -103,16 +109,18 @@ class _MyProfileState extends State<MyProfile> {
       final provider = Provider.of<MenuPageProvider>(context, listen: false);
       final request = http.MultipartRequest(
         "POST",
-        Uri.parse("${ApiConfig.baseUrl}/profile/image"),
+        Uri.parse("${ApiConfig.baseUrl}/profile/upload/image"),
       );
 
-      request.headers["Authorization"] =
-          "Bearer ${AuthService.token}";
+      request.headers["Authorization"] = "Bearer ${AuthService.token}";
+      
+      final mimeType = lookupMimeType(image.path) ?? "image/jpeg";
 
       request.files.add(
         await http.MultipartFile.fromPath(
           "image",        // Must match upload.single("image")
           image.path,
+          contentType: MediaType.parse(mimeType)
         ),
       );
 
@@ -121,12 +129,28 @@ class _MyProfileState extends State<MyProfile> {
 
       final data = jsonDecode(body);
       provider.updateProfilePicture(data["profileUrl"]);
-      print(body);
+      print("request Body : $body");
     } catch (e) {
       print(e);
     }
   }
 
+  Future<File> compressImage(File file) async {
+    final dir = await getTemporaryDirectory();
+    final targetPath = "${dir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg";
+
+    final result = await FlutterImageCompress.compressAndGetFile(
+      file.absolute.path,
+      targetPath,
+      quality: 80,
+      minWidth: 512,   // plenty for an avatar, even on retina displays
+      minHeight: 512,
+      format: CompressFormat.jpeg,
+    );
+
+    return File(result!.path);
+  }
+  
   final ImagePicker _picker = ImagePicker();
   Future<void> pickImage() async {
     final XFile? image = await _picker.pickImage(
@@ -136,7 +160,8 @@ class _MyProfileState extends State<MyProfile> {
 
     if (image == null) return;
 
-    uploadImage(File(image.path));
+    final compressedImage = await compressImage(File(image.path));
+    uploadImage(compressedImage);
   }
 
   @override
@@ -144,7 +169,7 @@ class _MyProfileState extends State<MyProfile> {
     final myDisplayName = context.watch<MenuPageProvider>().currentUser['username'];
     final myContacts = context.watch<MenuPageProvider>().myContacts;
     final myBio = context.watch<MenuPageProvider>().myBio;
-    final profilePicture = context.watch<MenuPageProvider>().profilePicture;
+    final profileUrl = context.watch<MenuPageProvider>().profileUrl;
 
     contactController.text = myContacts;
     bioController.text = myBio;
@@ -160,42 +185,79 @@ class _MyProfileState extends State<MyProfile> {
           child: Column(
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  InkWell(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: Icon(
-                      Icons.arrow_back,
-                      color: widget.isDarkMode ? Colors.white : Colors.black,
-                    ),
+                  Row(
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: widget.isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        "Your Profile",
+                        style: TextStyle(
+                          color: widget.isDarkMode ? Colors.white : Colors.black,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 8),
-                  Text(
-                    "Your Profile",
-                    style: TextStyle(
-                      color: widget.isDarkMode ? Colors.white : Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Column(
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProfileHistory(
+                              loggedInUser: widget.loggedInUser,
+                              isDarkMode: widget.isDarkMode,
+                            ),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.history,
+                          color: widget.isDarkMode
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                      ),
+                      Text(
+                        "History",
+                        style: TextStyle(
+                          color: widget.isDarkMode ? Colors.white : Colors.black,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  )
                 ],
               ),
               SizedBox(height: 10),
-              CircleAvatar(
-                radius: 35,
-                backgroundColor: widget.isDarkMode ? Colors.white : Colors.black,
-                backgroundImage: profilePicture.isNotEmpty
-                    ? NetworkImage(profilePicture)
-                    : null,
-                child: profilePicture.isEmpty
-                    ? Text(
-                        "profileimg",
-                        style: TextStyle(
-                          color: widget.isDarkMode ? Colors.black : Colors.white,
-                        ),
-                      )
-                    : null,
+              GestureDetector(
+                onTap: () => Viewprofile(profileUrl: profileUrl, isDarkMode: widget.isDarkMode).openDialog(context),
+                child: CircleAvatar(
+                  radius: 35,
+                  backgroundColor: widget.isDarkMode ? Colors.white : Colors.black,
+                  backgroundImage: profileUrl.isNotEmpty
+                      ? NetworkImage(profileUrl)
+                      : null,
+                  child: profileUrl.isEmpty
+                      ? Text(
+                          "profileimg",
+                          style: TextStyle(
+                            color: widget.isDarkMode ? Colors.black : Colors.white,
+                          ),
+                        )
+                      : null,
+                ),
               ),
               GestureDetector(
                 onTap: pickImage,
