@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/config/apiConfig.dart';
+import 'package:frontend/pages/archivedChats.dart';
 import 'package:frontend/pages/conversation.dart';
 import 'package:frontend/services/token.dart';
 import 'package:frontend/widgets/home/conversationWidget.dart';
@@ -27,7 +28,7 @@ class _HomePageState extends State<HomePage> {
     Future.microtask(() => fetchConvo());
   }
 
-  Future<void> openChat(String userId, String userName) async {
+  Future<void> openChat(String userId, String userName, String profileInitials, String? profileUrl) async {
     final currentUser = context.read<MenuPageProvider>().currentUser;
     final isDarkMode = context.read<MenuPageProvider>().darkMode;
     try {
@@ -50,6 +51,8 @@ class _HomePageState extends State<HomePage> {
         loggedInUser: currentUser,
         friendName: userName,
         isDarkMode: isDarkMode,
+        profileInitials: profileInitials,
+        profileUrl: profileUrl,
       )));
     } catch (e) {
       print(e);
@@ -158,7 +161,34 @@ class _HomePageState extends State<HomePage> {
                     color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
-                Icon(Icons.settings, color: isDarkMode ? Colors.white : Colors.black,),
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ArchivedchatsPage(
+                        isDarkMode: isDarkMode,
+                        loggedInUser: currentUser,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        color: isDarkMode ? Colors.white : Colors.black,
+                        Icons.archive_rounded,
+                        size: 25,
+                      ),
+                      SizedBox(width: 2),
+                      Text(
+                        "Archives",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
 
@@ -170,8 +200,14 @@ class _HomePageState extends State<HomePage> {
               margin: EdgeInsets.symmetric(vertical: 15),
               child: TextFormField(
                 style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                onFieldSubmitted: (_) {
+                  if(mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Feature not implemented.")));
+                  }
+                },
                 decoration: InputDecoration(
-                  hintText: "Ask AI or Search Messages",
+                  // hintText: "Ask AI or Search Messages",
+                  hintText: "Search Messages",
                   hintStyle: TextStyle(
                     fontSize: 14,
                     color: isDarkMode ? Colors.white : Colors.black,
@@ -274,6 +310,7 @@ class _HomePageState extends State<HomePage> {
                           }
                         }
                         final profileUrl = friend['profile']?['profileUrl'];
+
                         return ConversationWidget(
                           loggedInUser: currentUser,
                           username: friend['username'],
@@ -282,7 +319,7 @@ class _HomePageState extends State<HomePage> {
                           previewMessage: lastMessage,
                           isDarkMode: isDarkMode,
                           profileUrl: profileUrl,
-                          onTap: () {
+                          onTap: (profileInitials) {
                             if (hasConversation) {
                               Navigator.push(
                                 context,
@@ -292,11 +329,13 @@ class _HomePageState extends State<HomePage> {
                                     loggedInUser: currentUser,
                                     friendName: friend['username'],
                                     isDarkMode: isDarkMode,
+                                    profileUrl: profileUrl,
+                                    profileInitials: profileInitials,
                                   ),
                                 ),
                               );
                             } else {
-                              openChat(friend['id'], friend['username']);
+                              openChat(friend['id'], friend['username'], profileInitials, profileUrl);
                             }
                           },
                         );

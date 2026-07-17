@@ -3,9 +3,14 @@ import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/pages/conversation.dart';
 import 'package:frontend/services/token.dart';
 import 'package:frontend/widgets/dialog/friendDetail.dart';
+import 'package:provider/provider.dart';
+import '../../providers/conversation_provider.dart';
+import '../../providers/friend_provider.dart';
 import '../../utils/profileName.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import '../dialog/unFriendDialog.dart';
 
 class Friendwidget extends StatefulWidget {
   final bool isDarkMode;
@@ -26,7 +31,10 @@ class Friendwidget extends StatefulWidget {
 }
 
 class _Friendwidget extends State<Friendwidget> {
-  Future<void> openChat(String userId) async {
+  final ValueNotifier<bool> isLoadingOnChat = ValueNotifier(false);
+
+  Future<void> openChat(BuildContext dialogContext, String userId, String profileInitials, String? profileUrl) async {
+    isLoadingOnChat.value = true;
     try {
       final res = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/conversation/open'),
@@ -38,13 +46,40 @@ class _Friendwidget extends State<Friendwidget> {
       );
 
       final data = jsonDecode(res.body)['data'];
-      print(data);
+
+      if(!mounted) return;
+      context.read<ConversationProvider>().addConversation(data);
+
+      Navigator.of(dialogContext).pop(); // Closes the dialog
+
       Navigator.push(context, MaterialPageRoute(builder: (context) => ConversationPage(
         conversationData: data,
         loggedInUser: widget.loggedInUser,
         friendName: widget.data['username'],
         isDarkMode: widget.isDarkMode,
+        profileInitials: profileInitials,
+        profileUrl: profileUrl,
       )));
+    } catch (e) {
+      print(e);
+    } finally {
+      isLoadingOnChat.value = false;
+    }
+  }
+
+  Future<void> unFriend(String userId) async {
+    try {
+      final friendProvider = context.read<FriendProvider>();
+      final conversationProvider = context.read<ConversationProvider>();
+
+      final message = await friendProvider.removeFriend(userId);
+      conversationProvider.archiveConversationByUserId(userId);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
     } catch (e) {
       print(e);
     }
@@ -59,6 +94,13 @@ class _Friendwidget extends State<Friendwidget> {
       onTap: () => FriendDetailDialog(
         friendProfile: widget.data,
         onChat: openChat,
+        onUnfriend: (friendId) => UnFriendDialog(
+          friendId: friendId,
+          friendUsername: widget.data['username'],
+          onConfirm: unFriend,
+        ).openDialog(context),
+        isDarkMode: widget.isDarkMode,
+        isLoadingOnChat: isLoadingOnChat,
       ).openDialog(context),
       child: Container(
         width: double.infinity,
@@ -114,25 +156,26 @@ class _Friendwidget extends State<Friendwidget> {
                 ),
               ],
             ),
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                height: 25,
-                width: 36,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  color: Colors.lightBlueAccent,
-                ),
-                child: Center(
-                  child: Text(
-                    "View",
+            Container(
+              height: 25,
+              width: 60,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                color: Colors.lightBlueAccent,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Friend",
                     style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 10,
                     ),
                   ),
-                ),
+                  Icon(Icons.people, color: Colors.black, size:16)
+                ],
               ),
             ),
           ],

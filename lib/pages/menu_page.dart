@@ -3,10 +3,12 @@ import 'package:frontend/pages/profile/profile.dart';
 import 'package:frontend/prompt.dart';
 import 'package:frontend/services/socket.dart';
 import 'package:frontend/services/token.dart';
+import 'package:frontend/utils/profileName.dart';
 import 'package:provider/provider.dart';
 import '../providers/conversation_provider.dart';
 import '../providers/friend_provider.dart';
 import '../providers/menu_page_provider.dart';
+import '../widgets/dialog/logOutDialog.dart';
 import '../widgets/menu/ListTile.dart';
 import 'profile/dark_mode.dart';
 
@@ -18,9 +20,10 @@ class MenuPage extends StatefulWidget {
 }
 
 class _MenuPage extends State<MenuPage> { 
-  void logOut() {
+  Future<void> logOut() async {
     context.read<FriendProvider>().clear();
     context.read<ConversationProvider>().clear();
+    context.read<MenuPageProvider>().clear();
     SocketService().disconnect();
     AuthService.token = null;
   }
@@ -29,8 +32,15 @@ class _MenuPage extends State<MenuPage> {
   Widget build(BuildContext context) {
     final currentUser = context.watch<MenuPageProvider>().currentUser;
     final isDarkMode = context.watch<MenuPageProvider>().darkMode;
+    final profileName = ProfileName.getInitials(currentUser['username']);
     final profileUrl = context.watch<MenuPageProvider>().profileUrl;
 
+    // Guard: currentUser can become null/empty mid-logout while this
+    // page is still animating off screen — bail out safely.
+    if (currentUser['username'] == null) {
+      return const SizedBox.shrink();
+    }
+    
     return SafeArea(
       child: Padding(
         padding: EdgeInsetsGeometry.symmetric(horizontal: 5),
@@ -49,7 +59,7 @@ class _MenuPage extends State<MenuPage> {
                       color: isDarkMode ? Colors.white : Colors.black,
                     ),
                   ),
-                  Icon(Icons.menu, color: isDarkMode ? Colors.white : Colors.black,),
+                  // Icon(Icons.menu, color: isDarkMode ? Colors.white : Colors.black,),
                 ],
               ),
               SizedBox(height: 20),
@@ -71,25 +81,25 @@ class _MenuPage extends State<MenuPage> {
                         color: isDarkMode ?Colors.white : Colors.black,
                         size: 14,
                       ),
-                      leadingWidget: CircleAvatar(
-                        radius: 20,
-                        backgroundColor: isDarkMode
-                            ? Colors.white
-                            : Colors.black,
-                        backgroundImage: profileUrl.isNotEmpty
-                            ? NetworkImage(profileUrl)
-                            : null,
-                        child: profileUrl.isEmpty
-                            ? Text(
-                                "profileimg",
-                                style: TextStyle(
-                                  color: isDarkMode
-                                      ? Colors.black
-                                      : Colors.white,
+                      leadingWidget: profileUrl != ""
+                          ? CircleAvatar(
+                              radius: 20,
+                              backgroundImage: NetworkImage(profileUrl),
+                            )
+                          : Container(
+                              height: 40,
+                              width: 40,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50),
+                                color: Colors.lightBlue.shade300,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  profileName,
+                                  style: TextStyle(fontSize: 18),
                                 ),
-                              )
-                            : null,
-                      ),
+                              ),
+                            ),
                       isDarkMode: isDarkMode,
                       ontap: () => Navigator.push(
                         context,
@@ -130,13 +140,15 @@ class _MenuPage extends State<MenuPage> {
 
                     // Log out button
                     GestureDetector(
-                      onTap: () {
-                        logOut();
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => Prompt()),
-                        );
-                      },
+                      onTap: () => LogoutDialog(
+                        onConfirm: () async {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => Prompt()),
+                          );
+                          await logOut();
+                        },
+                      ).openDialog(context),
                       child: Container(
                         width: 350,
                         height: 40,
@@ -169,7 +181,10 @@ class _MenuPage extends State<MenuPage> {
                     SizedBox(height: 3),
                     GestureDetector(
                       onTap: () {
-       
+                        if(mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content:  Text("This feature hasn't been implemented due to security reasons.")));
+                        }
                       },
                       child: Container(
                         width: 350,

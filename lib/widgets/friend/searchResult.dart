@@ -12,8 +12,7 @@ class SearchResultTemplate extends StatefulWidget {
     super.key,
     required this.searchResult,
     required this.marginSize,
-    required this.isDarkMode
-
+    required this.isDarkMode,
   });
 
   @override
@@ -21,22 +20,30 @@ class SearchResultTemplate extends StatefulWidget {
 }
 
 class _SearchResultTemplateState extends State<SearchResultTemplate> {
+  bool isLoading = false;
 
   // Sending Friend request to other users
   void addFriend(String recipientId) async {
-    final message = await context.read<FriendProvider>().addFriendRequest(
-      recipientId,
-    );
-    if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+    setState(() => isLoading = true);
+    try {
+      final message = await context.read<FriendProvider>().addFriendRequest(
+        recipientId,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      }
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final profileName = ProfileName.getInitials(widget.searchResult['username']);
+    final profileName = ProfileName.getInitials(
+      widget.searchResult['username'],
+    );
     final profileImage = widget.searchResult['profile']?['profileUrl'];
 
     return Container(
@@ -45,7 +52,7 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
       padding: EdgeInsets.symmetric(horizontal: 10),
       margin: EdgeInsets.symmetric(vertical: widget.marginSize),
       decoration: BoxDecoration(
-        color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade300 ,
+        color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
@@ -87,7 +94,9 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
                   ),
                   Text(
                     widget.searchResult['email'],
-                    style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black),
+                    style: TextStyle(
+                      color: widget.isDarkMode ? Colors.white : Colors.black,
+                    ),
                   ),
                 ],
               ),
@@ -104,7 +113,17 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
               onTap: () async {
                 addFriend(widget.searchResult['id']);
               },
-              child: Icon(Icons.person_add_alt, color: Colors.white),
+              child: isLoading
+                  ? SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        backgroundColor: Colors.lightGreenAccent,
+                        color: Colors.black,
+                        strokeWidth: 2.0,
+                      ),
+                    )
+                  : Icon(Icons.person_add_alt, color: Colors.white),
             ),
           ),
         ],

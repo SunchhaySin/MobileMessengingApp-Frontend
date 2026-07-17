@@ -7,7 +7,7 @@ class ConversationWidget extends StatefulWidget {
   final String username;
   final Map<String,dynamic>? previewMessage; // Last Message or New Chat (if Coversation has no messages)
   final String? timestamp;
-  final VoidCallback? onTap;
+  final void Function(String profileInitials)? onTap;
   final bool hasConversation;
 
   final double? marginSize;
@@ -42,7 +42,7 @@ class _ConversationWidgetState extends State<ConversationWidget> {
     final newChat = lastMessage == null && widget.hasConversation;
 
     return InkWell(
-      onTap: widget.onTap,
+      onTap: () => widget.onTap?.call(profileName),
       child: Container(
         width: double.infinity,
         height: 60,
@@ -55,49 +55,55 @@ class _ConversationWidgetState extends State<ConversationWidget> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                widget.profileUrl != null
-                    ? CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage(widget.profileUrl!),
-                      )
-                    : Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(50),
-                          color: Colors.lightBlue.shade300,
-                        ),
-                        child: Center(
-                          child: Text(
-                            profileName,
-                            style: TextStyle(fontSize: 18),
+            Expanded(
+              child: Row(
+                children: [
+                  widget.profileUrl != null
+                      ? CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(widget.profileUrl!),
+                        )
+                      : Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(50),
+                            color: Colors.lightBlue.shade300,
+                          ),
+                          child: Center(
+                            child: Text(
+                              profileName,
+                              style: TextStyle(fontSize: 18),
+                            ),
                           ),
                         ),
-                      ),
-                SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      widget.username,
-                      style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black, fontSize: 16),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.username,
+                          style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black, fontSize: 16),
+                        ),
+                        Text(
+                          newChat
+                            ? "Chat Empty"
+                            : widget.hasConversation 
+                              ? senderId == widget.loggedInUser['userID'] 
+                                ? "You: $lastMessage"
+                                : lastMessage
+                              : "Tap to start a converstion",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: TextStyle(color: widget.isDarkMode? Colors.white70 : Colors.black87, fontSize: 12),
+                        ),
+                      ],
                     ),
-                    Text(
-                      newChat
-                        ? "Chat Empty"
-                        : widget.hasConversation 
-                          ? senderId == widget.loggedInUser['userID'] 
-                            ? "You: $lastMessage"
-                            : lastMessage
-                          : "Tap to start a converstion",
-                      style: TextStyle(color: widget.isDarkMode? Colors.white70 : Colors.black87, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
             widget.hasConversation
                 ? newChat

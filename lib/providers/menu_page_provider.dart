@@ -72,4 +72,28 @@ class MenuPageProvider extends ChangeNotifier{
     _profileUrl = newProfileUrl;
     notifyListeners();
   }
+
+  // Profile History
+  List<dynamic> _profileHistoryList = [];
+  List<dynamic> get profileHistory => _profileHistoryList;
+
+  void setProfileHistory(List<dynamic> data) {
+    _profileHistoryList = data;
+    notifyListeners();
+  }
+
+  void updateHistoryList(dynamic history) {
+    _profileHistoryList.insert(0, history);
+    notifyListeners();
+  }
+
+  void clear() {
+    _profileHistoryList = [];
+    loggedInUser = {};
+    _profileUrl = "";
+    _myContacts = "";
+    _myBio = "";
+    _darkMode = true;
+    notifyListeners();
+  }
 }
