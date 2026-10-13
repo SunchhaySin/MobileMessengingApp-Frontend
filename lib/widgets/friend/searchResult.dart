@@ -21,16 +21,35 @@ class SearchResultTemplate extends StatefulWidget {
 }
 
 class _SearchResultTemplateState extends State<SearchResultTemplate> {
+  bool isLoading = false;
 
   // Sending Friend request to other users
   void addFriend(String recipientId) async {
-    final message = await context.read<FriendProvider>().addFriendRequest(
-      recipientId,
-    );
-    if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final message = await context.read<FriendProvider>().addFriendRequest(
+        recipientId,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Failed to send request: $e")));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -100,11 +119,23 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
               borderRadius: BorderRadius.circular(15),
               color: Colors.lightGreen,
             ),
-            child: InkWell(
-              onTap: () async {
-                addFriend(widget.searchResult['id']);
-              },
-              child: Icon(Icons.person_add_alt, color: Colors.white),
+            child: Center(
+              child: isLoading
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        backgroundColor: Colors.white,
+                        color: Colors.black,
+                        strokeWidth: 2.0,
+                      ),
+                    )
+                  : InkWell(
+                      onTap: () async {
+                        addFriend(widget.searchResult['id']);
+                      },
+                      child: Icon(Icons.person_add_alt, color: Colors.white),
+                    ),
             ),
           ),
         ],

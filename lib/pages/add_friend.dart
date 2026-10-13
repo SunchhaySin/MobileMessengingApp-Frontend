@@ -61,7 +61,7 @@ class _AddFriendPage extends State<AddFriendPage> {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 50, horizontal: 10),
+        padding: EdgeInsets.symmetric(vertical: 35, horizontal: 10),
         color: widget.isDarkMode ? Colors.black : Colors.white,
         child: Column(
           children: [

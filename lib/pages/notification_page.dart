@@ -4,6 +4,7 @@ import 'package:frontend/utils/profileName.dart';
 import 'package:frontend/widgets/alert/alertWidget.dart';
 import 'package:provider/provider.dart';
 import '../providers/menu_page_provider.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -53,7 +54,9 @@ class _NotificationPage extends State<NotificationPage> {
 
     return SafeArea(
       child: Padding(
-        padding: EdgeInsetsGeometry.symmetric(horizontal: 5),
+        padding: !kIsWeb 
+          ? EdgeInsetsGeometry.symmetric(horizontal: 5)
+          : EdgeInsetsGeometry.only(top: 25, left: 5, right: 5),
         child: SizedBox(
           width: double.infinity,
           child: Column(

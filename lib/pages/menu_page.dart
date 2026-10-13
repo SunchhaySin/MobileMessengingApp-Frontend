@@ -9,6 +9,7 @@ import '../providers/friend_provider.dart';
 import '../providers/menu_page_provider.dart';
 import '../widgets/menu/ListTile.dart';
 import 'profile/dark_mode.dart';
+import 'package:flutter/foundation.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -33,7 +34,9 @@ class _MenuPage extends State<MenuPage> {
 
     return SafeArea(
       child: Padding(
-        padding: EdgeInsetsGeometry.symmetric(horizontal: 5),
+        padding: !kIsWeb 
+          ? EdgeInsetsGeometry.symmetric(horizontal: 5)
+          : EdgeInsetsGeometry.only(top: 25, left: 5, right: 5),
         child: SizedBox(
           width: double.infinity,
           child: Column(
