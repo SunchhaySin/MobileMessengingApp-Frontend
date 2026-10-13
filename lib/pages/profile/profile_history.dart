@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'dart:convert';
 import '../../config/apiConfig.dart';
+import '../../providers/menu_page_provider.dart';
 import '../../services/token.dart';
 import 'package:flutter/foundation.dart';
 
@@ -19,8 +21,12 @@ class ProfileHistory extends StatefulWidget {
 }
 
 class _ProfileHistoryState extends State<ProfileHistory> {
-  Future<void> fetchHisotry() async {
+  bool isLoading = false;
+
+  Future<void> fetchHistory() async {
+    setState(() => isLoading = true);
     try {
+      final provider = Provider.of<MenuPageProvider>(context, listen: false);
       final res = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/profile/history'),
         headers: {
@@ -29,17 +35,26 @@ class _ProfileHistoryState extends State<ProfileHistory> {
         },
       );
 
-      if(res.statusCode == 200){
+      if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         print(data);
-      } 
+        provider.setProfileHistory(data);
+      }
+      setState(() => isLoading = false);
     } catch (e) {
       print(e);
     }
-  } 
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchHistory();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final historyList = context.watch<MenuPageProvider>().profileHistory;
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -71,6 +86,62 @@ class _ProfileHistoryState extends State<ProfileHistory> {
                     ),
                   ),
                 ],
+              ),
+              Expanded(
+                child: !isLoading
+                    ? historyList.isNotEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 25,
+                              ),
+                              child: ListView.builder(
+                                itemCount: historyList.length,
+                                itemBuilder: (context, index) {
+                                  final historyRecord = historyList[index];
+
+                                  return ProfileHistoryWidget(
+                                    message: historyRecord['message'],
+                                    timeStamp: historyRecord['createdAt'],
+                                    isDarkMode: widget.isDarkMode,
+                                  );
+                                },
+                              ),
+                            )
+                          : Center(
+                              child: Text(
+                                "No Profile History",
+                                style: TextStyle(
+                                  color: widget.isDarkMode
+                                      ? Colors.white
+                                      : Colors.white,
+                                ),
+                              ),
+                            )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              backgroundColor: Colors.white,
+                              color: Colors.black,
+                              strokeWidth: 2.0,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            "Loading...",
+                            style: TextStyle(
+                              color: widget.isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ],
           ),

@@ -43,6 +43,31 @@ class _NotificationPage extends State<NotificationPage> {
     return ProfileName.getInitials(senderUsername);
   }
 
+  Future<String> deleteAlert(String alertId) async {
+    try {
+      final res = await http.delete(
+        Uri.parse('${ApiConfig.baseUrl}/alert/$alertId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${AuthService.token}',
+        },
+      );
+
+      final data = jsonDecode(res.body);
+
+      if (res.statusCode == 200) {
+        if (mounted) {
+          context.read<FriendProvider>().removeAlert(alertId);
+        }
+        return data['message'] ?? 'Alert Deleted Successfully';
+      } else {
+        return data['message'] ?? 'Failed to remove alert';
+      }
+    } catch (e) {
+      return "Something went wrong";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final alertsList = context.watch<FriendProvider>().alerts;
@@ -81,20 +106,36 @@ class _NotificationPage extends State<NotificationPage> {
                         itemCount: filteredAlerts.length,
                         itemBuilder: (context, index) {
                           final alert = filteredAlerts[index];
-                          final profileUrl = alert['sender']['profile']?['profileUrl'];
-   
-                          return Alertwidget(
-                            loggedInUser: currentUser,
-                            isDarkMode: isDarkMode,
-                            marginSize: 3.0,
-                            alertMessage: composeAlertMessage(
-                              filteredAlerts[index],
+                          final profileUrl =
+                              alert['sender']['profile']?['profileUrl'];
+                          return Dismissible(
+                            key: Key(alert['id']),
+                            direction: DismissDirection.endToStart,
+                            onDismissed: (direction) async {
+                              deleteAlert(alert['id']);
+                            },
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(Icons.delete, color: Colors.white),
                             ),
-                            profileInitials: getProfileInitials(
-                              filteredAlerts[index],
+                            child: Alertwidget(
+                              loggedInUser: currentUser,
+                              isDarkMode: isDarkMode,
+                              marginSize: 3.0,
+                              alertMessage: composeAlertMessage(
+                                filteredAlerts[index],
+                              ),
+                              profileInitials: getProfileInitials(
+                                filteredAlerts[index],
+                              ),
+                              timeStamp: filteredAlerts[index]['createdAt'],
+                              profileUrl: profileUrl,
                             ),
-                            timeStamp: filteredAlerts[index]['createdAt'],
-                            profileUrl: profileUrl,
                           );
                         },
                       )

@@ -45,6 +45,12 @@ class FriendProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Removes a single alert from the local alerts list
+  void removeAlert(String alertId) {
+    _alerts.removeWhere((a) => a['id'] == alertId);
+    notifyListeners();
+  }
+
   // ─── Socket Actions ───
 
   // Handles sending friend request which reflect on sent request in real-time
@@ -61,6 +67,28 @@ class FriendProvider extends ChangeNotifier {
     });
 
     _socket?.once('friend:add:error', (data) {
+      final response = data is List ? data[0] : data;
+      completer.complete(
+        response['message']?.toString() ?? 'Something went wrong',
+      );
+    });
+
+    return completer.future;
+  }
+
+  // Handles unfriending someone and updates the friend list in real-time
+  Future<String> removeFriend(String friendId) {
+    final completer = Completer<String>();
+    _socket?.emit('friend:remove', {'friendId': friendId});
+
+    _socket?.once('friend:remove:success', (data) {
+      final response = data is List ? data[0] : data;
+      _friends.removeWhere((f) => f['id'] == friendId);
+      notifyListeners();
+      completer.complete(response['message']?.toString() ?? 'Unfriended successfully');
+    });
+
+    _socket?.once('friend:remove:error', (data) {
       final response = data is List ? data[0] : data;
       completer.complete(
         response['message']?.toString() ?? 'Something went wrong',
@@ -87,9 +115,11 @@ class FriendProvider extends ChangeNotifier {
         };
       }
 
-      // _alerts.add(response['alert']);
-      final friendData = response['friend'];
-      _friends.add(friendData['friend']);
+      final friendData = response['friend']; // _alerts.add(response['alert']);
+      final friendWithDate = Map<String, dynamic>.from(friendData['friend'])
+        ..['createdAt'] = friendData['createdAt']; // Includes the data of the when the friendship was created, to display in friend detail dialog
+
+      _friends.add(friendWithDate);
       notifyListeners();
       completer.complete(response['message']?.toString() ?? 'Request Accepted');
     });
@@ -190,7 +220,10 @@ class FriendProvider extends ChangeNotifier {
 
       // I'm the requester, so MY new friend is the acceptor → 'user', not 'friend'
       final friendData = response['friend'];
-      _friends.add(friendData['user']);
+      final friendWithDate = Map<String, dynamic>.from(friendData['friend'])
+        ..['createdAt'] = friendData['createdAt']; // Includes the data of the when the friendship was created, to display in friend detail dialog
+
+      _friends.add(friendWithDate);
 
       notifyListeners();
     });
@@ -212,6 +245,14 @@ class FriendProvider extends ChangeNotifier {
       _alerts.add(response['alert']);
       notifyListeners();
     });
+
+    // The other user removed me as a friend
+    _socket?.on('friend:removed', (data) {
+      final response = data is List ? data[0] : data;
+      final removerId = response['removedBy'];
+      _friends.removeWhere((f) => f['id'] == removerId);
+      notifyListeners();
+    });
   }
 
   // Call this on logout / socket teardown so listeners don't leak into the next session
@@ -219,6 +260,7 @@ class FriendProvider extends ChangeNotifier {
     _socket?.off('friend:new:request');
     _socket?.off('friend:request:accepted');
     _socket?.off('friend:request:rejected');
+    _socket?.off('friend:removed');
     _listenersRegistered = false;
   }
 

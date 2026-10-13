@@ -12,8 +12,7 @@ class SearchResultTemplate extends StatefulWidget {
     super.key,
     required this.searchResult,
     required this.marginSize,
-    required this.isDarkMode
-
+    required this.isDarkMode,
   });
 
   @override
@@ -55,7 +54,9 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
 
   @override
   Widget build(BuildContext context) {
-    final profileName = ProfileName.getInitials(widget.searchResult['username']);
+    final profileName = ProfileName.getInitials(
+      widget.searchResult['username'],
+    );
     final profileImage = widget.searchResult['profile']?['profileUrl'];
 
     return Container(
@@ -64,7 +65,7 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
       padding: EdgeInsets.symmetric(horizontal: 10),
       margin: EdgeInsets.symmetric(vertical: widget.marginSize),
       decoration: BoxDecoration(
-        color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade300 ,
+        color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
@@ -106,7 +107,9 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
                   ),
                   Text(
                     widget.searchResult['email'],
-                    style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black),
+                    style: TextStyle(
+                      color: widget.isDarkMode ? Colors.white : Colors.black,
+                    ),
                   ),
                 ],
               ),

@@ -124,6 +124,9 @@ class _LoginInterface extends State<LoginInterface> {
             child: TextFormField(
               controller: _identifierController,
               style: TextStyle(color: widget.textColor),
+              onFieldSubmitted: (_) async {
+                await loginUser();
+              } ,
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.email_outlined, color: Colors.white),
                 labelStyle: TextStyle(color: Colors.white60),
@@ -153,6 +156,9 @@ class _LoginInterface extends State<LoginInterface> {
               controller: _passwordController,
               obscureText: _obscureText,
               style: TextStyle(color: widget.textColor),
+              onFieldSubmitted: (_) async {
+                await loginUser();
+              } ,
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.lock_outlined, color: Colors.white),
                 suffixIcon: IconButton(

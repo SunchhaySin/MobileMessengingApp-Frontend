@@ -12,8 +12,13 @@ class ConversationProvider extends ChangeNotifier {
   List<dynamic> _conversations = [];
   bool _conversationsLoaded = false;
 
+  // Conversations moved here when the other participant is unfriended
+  // (kept read-only / hidden from the main list, not deleted)
+  List<dynamic> _archivedConversations = [];
+
   List<dynamic> get conversations => _conversations;
   bool get conversationsLoaded => _conversationsLoaded;
+  List<dynamic> get archivedConversations => _archivedConversations;
 
   String? _activeConversationId;
   String? _errorMessage;
@@ -37,11 +42,15 @@ class ConversationProvider extends ChangeNotifier {
 
     _socket?.on('new:message', _onNewMessage);
     _socket?.on('error', _onSocketError);
+    _socket?.on('friend:removed', _onFriendRemoved);
+     _socket?.on('conversation:deleted', _onConversationDeleted);
   }
 
   void teardownMessageListeners() {
     _socket?.off('new:message', _onNewMessage);
     _socket?.off('error', _onSocketError);
+    _socket?.off('friend:removed', _onFriendRemoved);
+     _socket?.on('conversation:deleted', _onConversationDeleted);
     _listenersRegistered = false;
   }
 
@@ -52,8 +61,9 @@ class ConversationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setConversations(List<dynamic> coversations) {
-    _conversations = coversations;
+  void setConversations(List<dynamic> conversations) {
+    _conversations = conversations.where((c) => c['isArchived'] != true).toList();
+    _archivedConversations = conversations.where((c) => c['isArchived'] == true).toList();
     _conversationsLoaded = true;
     notifyListeners();
   }
@@ -69,6 +79,21 @@ class ConversationProvider extends ChangeNotifier {
     notifyListeners();
 
     _socket?.emit('join_conversation', conversationId);
+  }
+
+  // Helper Function to archive unfriended chats
+  void _onFriendRemoved(dynamic data) {
+    final response = data is List ? data[0] : data;
+    final removerId = response['removedBy'];
+    if (removerId == null) return;
+    archiveConversationByUserId(removerId);
+  }
+
+  void _onConversationDeleted(dynamic data) {
+    final response = data is List ? data[0] : data;
+    final conversationId = response['conversationId'];
+    if (conversationId == null) return;
+    removeConversation(conversationId);
   }
 
   // Reorginises all messages in a specific coversation, replacing the optimistic message with the real one from the database
@@ -147,6 +172,30 @@ class ConversationProvider extends ChangeNotifier {
     // Optional: move the conversation to the top
     final conversation = _conversations.removeAt(index);
     _conversations.insert(0, conversation);
+  }
+
+  // Moves a conversation to the archive list when the other participant is unfriended.
+  // Looks up the conversation by the other user's id rather than conversationId,
+  // since that's what's available at the point of unfriending.
+  void archiveConversationByUserId(String friendUserId) {
+    final index = _conversations.indexWhere((c) =>
+        c['user1Id'] == friendUserId || c['user2Id'] == friendUserId);
+
+    if (index == -1) return; // no conversation existed with this user
+
+    // final conversation = _conversations.removeAt(index);
+    final conversation = Map<String, dynamic>.from(_conversations.removeAt(index));
+    conversation['isArchived'] = true;
+    _archivedConversations.insert(0, conversation);
+    notifyListeners();
+  }
+
+  void removeConversation(String conversationId) {
+    _conversations.removeWhere((c) => c['id'] == conversationId);
+    _archivedConversations.removeWhere((c) => c['id'] == conversationId);
+    _messagesByConversation.remove(conversationId);
+    _loadedConversations.remove(conversationId);
+    notifyListeners();
   }
 
   void addConversation(Map<String, dynamic> conversation) {
