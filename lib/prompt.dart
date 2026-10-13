@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/widgets/auth/login_Interface.dart';
-import 'package:frontend/widgets/auth/register_interface.dart';
+import 'package:frontend/widgets/auth/register_Interface.dart';
 
 class Prompt extends StatefulWidget {
   const Prompt({super.key});
