@@ -38,7 +38,7 @@ class _Layout extends State<Layout> {
     Future.microtask(() => fetchAlerts()); // Fetches Alerts when the provider is mounted
     Future.microtask(() => fetchRequests()); // Fetches requests when the provider is mounted
     Future.microtask(() => fetchFriend());
-    Future.microtask(() => fetchContacts());
+    Future.microtask(() => fetchProfile());
   });
     
     pages = [
@@ -135,7 +135,7 @@ class _Layout extends State<Layout> {
     }
   }
 
-  Future<void> fetchContacts() async {
+  Future<void> fetchProfile() async {
     try{
       final provider = Provider.of<MenuPageProvider>(context, listen: false);
       final res = await http.get(
@@ -148,9 +148,9 @@ class _Layout extends State<Layout> {
       if(res.statusCode == 200) {
         final data = jsonDecode(res.body)['data'];
         if(data != null){
-          provider.setContacts(data['contacts']);
-          provider.setBio(data['bio']);
-          provider.setProfilePicture(data['profileUrl']);
+          provider.setContacts(data['contacts'] as String? ?? "");
+          provider.setBio(data['bio'] as String? ?? "");
+          provider.setProfilePicture(data['profileUrl'] as String? ?? "");
         }
       }
     } catch(e) {
