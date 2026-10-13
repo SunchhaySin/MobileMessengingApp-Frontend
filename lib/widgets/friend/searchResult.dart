@@ -24,7 +24,10 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
 
   // Sending Friend request to other users
   void addFriend(String recipientId) async {
-    setState(() => isLoading = true);
+    setState(() {
+      isLoading = true;
+    });
+
     try {
       final message = await context.read<FriendProvider>().addFriendRequest(
         recipientId,
@@ -34,8 +37,18 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
           context,
         ).showSnackBar(SnackBar(content: Text(message)));
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Failed to send request: $e")));
+      }
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -109,21 +122,23 @@ class _SearchResultTemplateState extends State<SearchResultTemplate> {
               borderRadius: BorderRadius.circular(15),
               color: Colors.lightGreen,
             ),
-            child: InkWell(
-              onTap: () async {
-                addFriend(widget.searchResult['id']);
-              },
+            child: Center(
               child: isLoading
                   ? SizedBox(
-                      height: 18,
                       width: 18,
+                      height: 18,
                       child: CircularProgressIndicator(
-                        backgroundColor: Colors.lightGreenAccent,
+                        backgroundColor: Colors.white,
                         color: Colors.black,
                         strokeWidth: 2.0,
                       ),
                     )
-                  : Icon(Icons.person_add_alt, color: Colors.white),
+                  : InkWell(
+                      onTap: () async {
+                        addFriend(widget.searchResult['id']);
+                      },
+                      child: Icon(Icons.person_add_alt, color: Colors.white),
+                    ),
             ),
           ),
         ],

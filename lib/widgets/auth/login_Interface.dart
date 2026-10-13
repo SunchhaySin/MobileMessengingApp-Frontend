@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/layout.dart';
@@ -43,11 +44,17 @@ class _LoginInterface extends State<LoginInterface> {
         "password": _passwordController.text,
       });
 
-      final res = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: body,
-      );
+      final res = await http
+          .post(url, headers: {'Content-Type': 'application/json'}, body: body)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Server Timeout after 10 seconds.")),
+              );
+              throw TimeoutException("Server Timeout after 10 seconds.");
+            },
+          );
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -67,12 +74,14 @@ class _LoginInterface extends State<LoginInterface> {
           MaterialPageRoute(builder: (context) => Layout()),
         );
       } else {
-        final error = jsonDecode(res.body)['message'];
+        final errorMsg = jsonDecode(res.body)['message'];
+        final error = jsonDecode(res.body)['error'];
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(error)));
+          ).showSnackBar(SnackBar(content: Text(errorMsg)));
         }
+        print("Login Failed $error");
       }
     } catch (e) {
       print(e);

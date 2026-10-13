@@ -1,11 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/widgets/menu/profile_history_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import '../../config/apiConfig.dart';
 import '../../providers/menu_page_provider.dart';
 import '../../services/token.dart';
-import '../../widgets/menu/profile_history_widget.dart';
 
 class ProfileHistory extends StatefulWidget {
   final Map<String, dynamic> loggedInUser;
@@ -59,7 +60,9 @@ class _ProfileHistoryState extends State<ProfileHistory> {
       body: Container(
         width: double.infinity,
         color: widget.isDarkMode ? Colors.black : Colors.white,
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        padding: !kIsWeb 
+          ? EdgeInsets.symmetric(vertical: 10, horizontal: 10)
+          : EdgeInsetsGeometry.only(top: 25, left: 5, right: 5),
         child: SafeArea(
           child: Column(
             children: [

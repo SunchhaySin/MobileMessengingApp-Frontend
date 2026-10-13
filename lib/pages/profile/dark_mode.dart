@@ -17,7 +17,7 @@ class _DarkModePageState extends State<DarkModePage> {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 50, horizontal: 10),
+        padding: EdgeInsets.symmetric(vertical: 35, horizontal: 10),
         color: isDarkMode ?Colors.black :Colors.white,
         child: Column(
           children: [

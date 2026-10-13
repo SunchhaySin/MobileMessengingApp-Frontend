@@ -11,6 +11,7 @@ import '../providers/conversation_provider.dart';
 import '../providers/friend_provider.dart';
 import 'dart:convert';
 import '../providers/menu_page_provider.dart';
+import 'package:flutter/foundation.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -146,7 +147,9 @@ class _HomePageState extends State<HomePage> {
 
     return SafeArea(
       child: Padding(
-        padding: EdgeInsetsGeometry.symmetric(horizontal: 5),
+        padding: !kIsWeb 
+          ? EdgeInsetsGeometry.symmetric(horizontal: 5)
+          : EdgeInsetsGeometry.only(top: 25, left: 5, right: 5),
         child: Column(
           children: [
             // ================= HEADER =================

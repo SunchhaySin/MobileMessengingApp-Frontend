@@ -9,7 +9,6 @@ import '../../providers/friend_provider.dart';
 import '../../utils/profileName.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import '../dialog/unFriendDialog.dart';
 
 class Friendwidget extends StatefulWidget {

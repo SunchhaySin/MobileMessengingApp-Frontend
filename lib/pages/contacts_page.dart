@@ -5,6 +5,7 @@ import 'package:frontend/providers/friend_provider.dart';
 import 'package:frontend/widgets/friend/friendWidget.dart';
 import 'package:provider/provider.dart';
 import '../providers/menu_page_provider.dart';
+import 'package:flutter/foundation.dart';
 
 class ContactsPage extends StatefulWidget {
   const ContactsPage({super.key});
@@ -24,7 +25,9 @@ class _ContactsPage extends State<ContactsPage> {
 
     return SafeArea(
       child: Padding(
-        padding: EdgeInsetsGeometry.symmetric(horizontal: 5),
+        padding: !kIsWeb 
+          ? EdgeInsetsGeometry.symmetric(horizontal: 5)
+          : EdgeInsetsGeometry.only(top: 25, left: 5, right: 5),
         child: SizedBox(
           width: double.infinity,
           child: Column(
@@ -136,9 +139,15 @@ class _ContactsPage extends State<ContactsPage> {
                         },
                       )
                     : Center(
-                        child: Text(
-                          "You have no friends. Reach out by sending friend requests",
-                          style: TextStyle(color: Colors.white),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "You have no friends. Reach out by sending friend requests",
+                              style: TextStyle(color: Colors.white),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       ),
               ),

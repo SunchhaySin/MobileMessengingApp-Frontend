@@ -191,7 +191,7 @@ class _MyProfileState extends State<MyProfile> {
           constraints: BoxConstraints(
             minHeight: MediaQuery.of(context).size.height,
           ),
-          padding: EdgeInsets.symmetric(vertical: 50, horizontal: 10),
+          padding: EdgeInsets.symmetric(vertical: 35, horizontal: 10),
           color: widget.isDarkMode ? Colors.black : Colors.white,
           child: Column(
             children: [

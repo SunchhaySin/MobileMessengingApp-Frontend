@@ -1,13 +1,14 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/providers/friend_provider.dart';
+import 'package:frontend/services/token.dart';
 import 'package:frontend/utils/profileName.dart';
 import 'package:frontend/widgets/alert/alertWidget.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../providers/menu_page_provider.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../config/apiConfig.dart';
-import '../services/token.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -82,7 +83,9 @@ class _NotificationPage extends State<NotificationPage> {
 
     return SafeArea(
       child: Padding(
-        padding: EdgeInsetsGeometry.symmetric(horizontal: 5),
+        padding: !kIsWeb 
+          ? EdgeInsetsGeometry.symmetric(horizontal: 5)
+          : EdgeInsetsGeometry.only(top: 25, left: 5, right: 5),
         child: SizedBox(
           width: double.infinity,
           child: Column(

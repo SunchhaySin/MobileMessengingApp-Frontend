@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/layout.dart';
@@ -40,11 +41,17 @@ class _RegisterInterface extends State<RegisterInterface> {
         "confirmPassword": _confirmPasswordController.text,
       });
 
-      final res = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: body,
-      );
+      final res = await http
+          .post(url, headers: {'Content-Type': 'application/json'}, body: body)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Server Timeout after 10 seconds.")),
+              );
+              throw TimeoutException("Server Timeout after 10 seconds.");
+            },
+          );
       
       if (res.statusCode == 201) {
         final data = jsonDecode(res.body);

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:frontend/pages/conversation.dart';
 import 'package:frontend/providers/conversation_provider.dart';
 import 'package:provider/provider.dart';
-
 import '../widgets/home/conversationWidget.dart';
 
 class ArchivedchatsPage extends StatefulWidget {
