@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/layout.dart';
@@ -122,6 +121,9 @@ class _RegisterInterface extends State<RegisterInterface> {
             child: TextFormField(
               controller: _emailController,
               style: TextStyle(color: widget.textColor),
+              onFieldSubmitted: (_) async {
+                await registerUser();
+              } ,
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.email_outlined, color: Colors.white,),
                 labelStyle: TextStyle(color: Colors.white60),
@@ -151,6 +153,9 @@ class _RegisterInterface extends State<RegisterInterface> {
             child: TextFormField(
               controller: _usernameController,
               style: TextStyle(color: widget.textColor),
+              onFieldSubmitted: (_) async {
+                await registerUser();
+              } ,
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.person, color: Colors.white,),
                 labelStyle: TextStyle(color: Colors.white60),
@@ -181,6 +186,9 @@ class _RegisterInterface extends State<RegisterInterface> {
               controller: _passwordController,
               obscureText: _obscureText,
               style: TextStyle(color: widget.textColor),
+              onFieldSubmitted: (_) async {
+                await registerUser();
+              },
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.lock_outlined, color: Colors.white,),
                 suffixIcon: IconButton(
@@ -223,6 +231,9 @@ class _RegisterInterface extends State<RegisterInterface> {
               controller: _confirmPasswordController,
               style: TextStyle(color: widget.textColor),
               obscureText: _obscureText,
+              onFieldSubmitted: (_) async {
+                await registerUser();
+              } ,
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.lock_outlined, color: Colors.white,),
                 suffixIcon: IconButton(
@@ -304,6 +315,7 @@ class _RegisterInterface extends State<RegisterInterface> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                            SizedBox(width: 12,),
                             SizedBox(
                               height: 18,
                               width: 18,

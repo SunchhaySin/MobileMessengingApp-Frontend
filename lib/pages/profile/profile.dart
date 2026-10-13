@@ -3,6 +3,7 @@ import 'package:frontend/config/apiConfig.dart';
 import 'package:frontend/pages/profile/profile_history.dart';
 import 'package:frontend/pages/profile/reset_password_page.dart';
 import 'package:frontend/services/token.dart';
+import 'package:frontend/utils/profileName.dart';
 import 'package:frontend/widgets/dialog/viewProfile.dart';
 import 'package:provider/provider.dart';
 import '../../providers/menu_page_provider.dart';
@@ -59,6 +60,9 @@ class _MyProfileState extends State<MyProfile> {
       final data = jsonDecode(res.body);
       usernameController.text = data['newUsername'];
       provider.updateUsername(data['newUsername']);
+      if(data['history'] != null){
+        provider.updateHistoryList(data['history']);
+      }
     } catch (e) {
       print(e);
     }
@@ -78,7 +82,10 @@ class _MyProfileState extends State<MyProfile> {
       );
       final data = jsonDecode(res.body);
       contactController.text = data['contact'];
-      provider.updateContact(data['contact']);
+      provider.updateContact(data['contact'] as String? ?? "");
+      if(data['history'] != null){
+        provider.updateHistoryList(data['history']);
+      }
     } catch (e) {
       print(e);
     }
@@ -98,7 +105,10 @@ class _MyProfileState extends State<MyProfile> {
       );
       final data = jsonDecode(res.body);
       bioController.text = data['bio'];
-      provider.updateBio(data['bio']);
+      provider.updateBio(data['bio'] as String? ?? "");
+      if(data['history'] != null){
+        provider.updateHistoryList(data['history']);
+      }
     } catch (e) {
       print(e);
     }
@@ -129,7 +139,7 @@ class _MyProfileState extends State<MyProfile> {
 
       final data = jsonDecode(body);
       provider.updateProfilePicture(data["profileUrl"]);
-      print("request Body : $body");
+      // print("request Body : $body");
     } catch (e) {
       print(e);
     }
@@ -170,6 +180,7 @@ class _MyProfileState extends State<MyProfile> {
     final myContacts = context.watch<MenuPageProvider>().myContacts;
     final myBio = context.watch<MenuPageProvider>().myBio;
     final profileUrl = context.watch<MenuPageProvider>().profileUrl;
+    final profileName = ProfileName.getInitials(myDisplayName);
 
     contactController.text = myContacts;
     bioController.text = myBio;
@@ -243,21 +254,25 @@ class _MyProfileState extends State<MyProfile> {
               SizedBox(height: 10),
               GestureDetector(
                 onTap: () => Viewprofile(profileUrl: profileUrl, isDarkMode: widget.isDarkMode).openDialog(context),
-                child: CircleAvatar(
-                  radius: 35,
-                  backgroundColor: widget.isDarkMode ? Colors.white : Colors.black,
-                  backgroundImage: profileUrl.isNotEmpty
-                      ? NetworkImage(profileUrl)
-                      : null,
-                  child: profileUrl.isEmpty
-                      ? Text(
-                          "profileimg",
-                          style: TextStyle(
-                            color: widget.isDarkMode ? Colors.black : Colors.white,
+                child: profileUrl != ""
+                    ? CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(profileUrl),
+                      )
+                    : Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          color: Colors.lightBlue.shade300,
+                        ),
+                        child: Center(
+                          child: Text(
+                            profileName,
+                            style: TextStyle(fontSize: 18),
                           ),
-                        )
-                      : null,
-                ),
+                        ),
+                      ),
               ),
               GestureDetector(
                 onTap: pickImage,

@@ -4,7 +4,7 @@ name: Test Flutter Web Build
 on:
   push:
     branches:
-      -  deploy/Test-Final-Build
+      -  Deployment-Build-Test
   workflow_dispatch:
 
 permissions:
