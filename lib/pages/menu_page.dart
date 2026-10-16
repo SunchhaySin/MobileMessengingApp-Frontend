@@ -11,7 +11,6 @@ import '../providers/menu_page_provider.dart';
 import '../widgets/dialog/logOutDialog.dart';
 import '../widgets/menu/ListTile.dart';
 import 'profile/dark_mode.dart';
-import 'package:flutter/foundation.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
@@ -35,6 +34,7 @@ class _MenuPage extends State<MenuPage> {
     final isDarkMode = context.watch<MenuPageProvider>().darkMode;
     final profileName = ProfileName.getInitials(currentUser['username']);
     final profileUrl = context.watch<MenuPageProvider>().profileUrl;
+    bool isLargeScreen = MediaQuery.sizeOf(context).width > 460; 
 
     // Guard: currentUser can become null/empty mid-logout while this
     // page is still animating off screen — bail out safely.
@@ -44,7 +44,7 @@ class _MenuPage extends State<MenuPage> {
     
     return SafeArea(
       child: Padding(
-        padding: !kIsWeb 
+        padding: !isLargeScreen 
           ? EdgeInsetsGeometry.symmetric(horizontal: 5)
           : EdgeInsetsGeometry.only(top: 25, left: 5, right: 5),
         child: SizedBox(

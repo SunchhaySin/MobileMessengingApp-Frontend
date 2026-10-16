@@ -8,7 +8,6 @@ import 'package:frontend/widgets/alert/alertWidget.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../providers/menu_page_provider.dart';
-import 'package:flutter/foundation.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -80,10 +79,11 @@ class _NotificationPage extends State<NotificationPage> {
         .toList();
     final currentUser = context.watch<MenuPageProvider>().currentUser;
     final isDarkMode = context.watch<MenuPageProvider>().darkMode;
+    bool isLargeScreen = MediaQuery.sizeOf(context).width > 460; 
 
     return SafeArea(
       child: Padding(
-        padding: !kIsWeb 
+        padding: !isLargeScreen 
           ? EdgeInsetsGeometry.symmetric(horizontal: 5)
           : EdgeInsetsGeometry.only(top: 25, left: 5, right: 5),
         child: SizedBox(
