@@ -5,7 +5,6 @@ import 'package:frontend/providers/friend_provider.dart';
 import 'package:frontend/widgets/friend/friendWidget.dart';
 import 'package:provider/provider.dart';
 import '../providers/menu_page_provider.dart';
-import 'package:flutter/foundation.dart';
 
 class ContactsPage extends StatefulWidget {
   const ContactsPage({super.key});
@@ -22,10 +21,11 @@ class _ContactsPage extends State<ContactsPage> {
         .friends; // listens for changes in friendlist and updates the UI accordingly
     final currentUser = context.watch<MenuPageProvider>().currentUser;
     final isDarkMode = context.watch<MenuPageProvider>().darkMode;
+    bool isLargeScreen = MediaQuery.sizeOf(context).width > 460; 
 
     return SafeArea(
       child: Padding(
-        padding: !kIsWeb 
+        padding: !isLargeScreen 
           ? EdgeInsetsGeometry.symmetric(horizontal: 5)
           : EdgeInsetsGeometry.only(top: 25, left: 5, right: 5),
         child: SizedBox(
